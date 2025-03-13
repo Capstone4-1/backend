@@ -1,7 +1,7 @@
 spring:
 
   jwt:
-    secret: qwertyuiopasdfghjklzxcvbnmqwertyui
+    secret: qwertyuiopasdfghjklzxcvbnmqwertyuifgHJDDGHDGDjshdjsd
 
   datasource:
     url: jdbc:h2:tcp://localhost/~/capstone
