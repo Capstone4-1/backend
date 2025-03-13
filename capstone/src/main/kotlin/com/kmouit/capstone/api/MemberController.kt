@@ -4,8 +4,10 @@ import com.kmouit.capstone.jwt.CustomUserDetails
 import com.kmouit.capstone.jwt.JWTUtil
 import com.kmouit.capstone.dtos.JoinForm
 import com.kmouit.capstone.dtos.LoginForm
+import com.kmouit.capstone.dtos.TokenDto
 import com.kmouit.capstone.exception.DuplicateUsernameException
 import com.kmouit.capstone.service.MemberManageService
+import com.kmouit.capstone.service.RefreshTokenService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -22,6 +24,7 @@ class MemberController(
     private val memberManageService: MemberManageService,
     private val jwtUtil: JWTUtil,
     private val authenticationManager: AuthenticationManager,
+    private val refreshTokenService: RefreshTokenService
 ) {
 
 
@@ -50,24 +53,41 @@ class MemberController(
     }
 
     @PostMapping("/login")
-    fun login(@RequestBody loginform: LoginForm): ResponseEntity<Any> {
+    fun login(@RequestBody loginForm: LoginForm): ResponseEntity<Any> {
         println("===로그인 호출===")
+        println(loginForm)
         return try {
-            // 입력받은 자격증명을 이용해 인증 객체 생성
-            val authToken = UsernamePasswordAuthenticationToken(loginform.username, loginform.password)
-            // 인증 매니저를 통해 인증 진행
+            val authToken = UsernamePasswordAuthenticationToken(loginForm.username, loginForm.password)
             val authentication = authenticationManager.authenticate(authToken)
-            // SecurityContext에 인증 객체 저장
             SecurityContextHolder.getContext().authentication = authentication
 
-            // 인증 성공 시, 사용자 정보를 가져와 JWT 생성 (여기선 첫 번째 권한을 role로 사용)
             val userDetails = authentication.principal as CustomUserDetails
             // 예시로 만료시간 1시간(3600000ms)로 설정
-            val jwt = jwtUtil.createJwt(userDetails.username, userDetails.authorities, 20 * 60 * 1000)
-            ResponseEntity.ok(mapOf("accessToken" to jwt))
+            val accessToken = jwtUtil.createAccessToken(userDetails.username, userDetails.authorities, 20 * 60 * 1000)
+            val refreshToken = jwtUtil.createRefreshToken(userDetails.username, 7 * 24 * 60 * 60 * 1000) // 7일
+            refreshTokenService.saveRefreshToken(userDetails.username, refreshToken) // 저장
+
+
+            val tokenDto = TokenDto(accessToken, refreshToken)
+            ResponseEntity.ok(tokenDto)
+
         } catch (e: Exception) {
-            // 인증 실패 시 401 상태 반환
             ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password")
+        }
+
+    }
+
+
+    @PostMapping("/logout")
+    fun logout(@RequestBody logoutRequest: Map<String, String>): ResponseEntity<Any> {
+        val refreshToken = logoutRequest["refreshToken"] ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Refresh token is required")
+
+        try {
+            val username = jwtUtil.getUsername(refreshToken)
+            refreshTokenService.deleteRefreshToken(username)
+            return ResponseEntity.ok("Logged out successfully")
+        } catch (e: Exception) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token")
         }
     }
 }

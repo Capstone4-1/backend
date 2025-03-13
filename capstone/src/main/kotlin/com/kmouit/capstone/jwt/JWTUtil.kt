@@ -49,7 +49,7 @@ class JWTUtil (
             .before(Date())
     }
 
-    fun createJwt(username: String, role: MutableList<out GrantedAuthority>, expiredMs: Long): String {
+    fun createAccessToken(username: String, role: MutableList<out GrantedAuthority>, expiredMs: Long): String {
         return Jwts.builder()
             .claim("username", username)
             .claim("role", role.map { it.authority })
@@ -59,6 +59,14 @@ class JWTUtil (
             .compact()
     }
 
+    fun createRefreshToken(username: String, expiredMs: Long): String {
+        return Jwts.builder()
+            .claim("username", username)
+            .setIssuedAt(Date(System.currentTimeMillis()))
+            .setExpiration(Date(System.currentTimeMillis() + expiredMs))
+            .signWith(secretKey, SignatureAlgorithm.HS256)
+            .compact()
+    }
 
 
 }
