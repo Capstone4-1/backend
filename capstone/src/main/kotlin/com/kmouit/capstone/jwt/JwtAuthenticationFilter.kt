@@ -1,5 +1,6 @@
 package com.kmouit.capstone.jwt
 
+import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import org.springframework.security.core.context.SecurityContextHolder
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import java.nio.charset.StandardCharsets
+import java.security.SignatureException
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
 
@@ -27,40 +29,43 @@ class JwtAuthenticationFilter(
     )
 
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
-
         val authorizationHeader = request.getHeader("Authorization")
 
-        // Check if header contains Bearer token
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            val token = authorizationHeader.substring(7) // Extract token (remove "Bearer " prefix)
+            val token = authorizationHeader.substring(7)
 
             try {
-                // Parse the JWT and validate it
                 val claims = Jwts.parserBuilder()
-                    .setSigningKey(secretKey) // Set the key used to validate the JWT
+                    .setSigningKey(secretKey)
                     .build()
                     .parseClaimsJws(token)
                     .body
 
-                // Extract username and roles from claims
                 val username = claims["username"] as String
-                val roles = claims["role"] as List<String> // Extract roles (list of roles)
-
-                // Convert roles to SimpleGrantedAuthority
+                val roles = claims["role"] as List<String>
                 val authorities = roles.map { role -> SimpleGrantedAuthority(role) }
-
-                // Create an authentication token
                 val authentication: Authentication = UsernamePasswordAuthenticationToken(username, null, authorities)
 
-                // Set authentication in the security context
                 SecurityContextHolder.getContext().authentication = authentication
+
+            } catch (e: ExpiredJwtException) {
+                sendErrorResponse(response, "TOKEN_EXPIRED", "Access Token has expired")
+                return
+            } catch (e: SignatureException) {
+                sendErrorResponse(response, "INVALID_TOKEN", "Invalid JWT signature")
+                return
             } catch (e: Exception) {
-                // Handle token parsing error
-                println("JWT parsing error: ${e.message}")
+                sendErrorResponse(response, "AUTH_ERROR", "Authentication failed")
+                return
             }
         }
 
-        // Continue with the filter chain
         filterChain.doFilter(request, response)
+    }
+
+    private fun sendErrorResponse(response: HttpServletResponse, error: String, message: String) {
+        response.status = HttpServletResponse.SC_UNAUTHORIZED
+        response.contentType = "application/json"
+        response.writer.write("""{"error": "$error", "message": "$message"}""")
     }
 }

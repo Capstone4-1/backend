@@ -4,7 +4,7 @@ import com.kmouit.capstone.jwt.CustomUserDetails
 import com.kmouit.capstone.jwt.JWTUtil
 import com.kmouit.capstone.dtos.JoinForm
 import com.kmouit.capstone.dtos.LoginForm
-import com.kmouit.capstone.dtos.TokenDto
+import com.kmouit.capstone.dtos.TokenResponse
 import com.kmouit.capstone.exception.DuplicateUsernameException
 import com.kmouit.capstone.service.MemberManageService
 import com.kmouit.capstone.service.RefreshTokenService
@@ -57,24 +57,32 @@ class MemberController(
         println("===로그인 호출===")
         println(loginForm)
         return try {
+            // 인증 시도
             val authToken = UsernamePasswordAuthenticationToken(loginForm.username, loginForm.password)
             val authentication = authenticationManager.authenticate(authToken)
             SecurityContextHolder.getContext().authentication = authentication
 
             val userDetails = authentication.principal as CustomUserDetails
-            // 예시로 만료시간 1시간(3600000ms)로 설정
-            val accessToken = jwtUtil.createAccessToken(userDetails.username, userDetails.authorities, 20 * 60 * 1000)
-            val refreshToken = jwtUtil.createRefreshToken(userDetails.username, 7 * 24 * 60 * 60 * 1000) // 7일
-            refreshTokenService.saveRefreshToken(userDetails.username, refreshToken) // 저장
 
+            val accessToken = jwtUtil.createAccessToken(
+                userDetails.username,
+                userDetails.authorities.toMutableList() // 권한 리스트
+            )
 
-            val tokenDto = TokenDto(accessToken, refreshToken)
-            ResponseEntity.ok(tokenDto)
+            val refreshToken = jwtUtil.createRefreshToken(
+                userDetails.username,
+            )
+
+            // 리프레시 토큰을 서버에 저장
+            refreshTokenService.saveRefreshToken(userDetails.username, refreshToken)
+
+            // 액세스 토큰과 리프레시 토큰을 클라이언트에게 반환
+            return ResponseEntity.ok(TokenResponse(accessToken, refreshToken))
 
         } catch (e: Exception) {
-            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password")
+            println("로그인 실패: ${e.message}")
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password")
         }
-
     }
 
 

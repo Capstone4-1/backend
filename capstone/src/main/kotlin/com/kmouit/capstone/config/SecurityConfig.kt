@@ -51,6 +51,8 @@ class SecurityConfig(
                     .requestMatchers("/api/member/join").permitAll() // 회원가입 API 허용
                     .requestMatchers("/api/member/login").permitAll() // 로그인 API 허용
                     .requestMatchers("/api/member/admin-test").hasAnyRole("ADMIN")
+                    .requestMatchers("/auth/refresh").permitAll()
+
                     .anyRequest().authenticated() // 나머지는 인증 필요
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
