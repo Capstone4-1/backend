@@ -37,16 +37,14 @@ class AuthController (
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token")
         }
 
-
         val userDetails = customUserDetailService.loadUserByUsername(username) as CustomUserDetails
-        val newAccessToken = jwtUtil.createAccessToken(username, userDetails.authorities.toMutableList())
+        val roles = userDetails.authorities.map { it.authority }
+        val newAccessToken = jwtUtil.createAccessToken(username, roles)
         val newRefreshToken = jwtUtil.createRefreshToken(username) // 7일 유효
 
         refreshTokenService.saveRefreshToken(username, newRefreshToken)
 
         return ResponseEntity.ok(TokenResponse(newAccessToken, newRefreshToken))
     }
-
-
 
 }

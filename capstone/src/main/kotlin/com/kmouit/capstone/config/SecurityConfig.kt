@@ -1,8 +1,10 @@
 package com.kmouit.capstone.config
 
 
+import com.kmouit.capstone.jwt.JWTUtil
 import com.kmouit.capstone.jwt.JwtAuthenticationFilter
 import com.kmouit.capstone.jwt.LoginFilter
+import com.kmouit.capstone.service.RefreshTokenService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -18,6 +20,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 class SecurityConfig(
+    private val jwtUtil: JWTUtil,
+    private val refreshTokenService: RefreshTokenService
 ) {
 
 
@@ -39,27 +43,28 @@ class SecurityConfig(
     fun securityFilterChain(
         http: HttpSecurity,
         authenticationConfiguration: AuthenticationConfiguration,
-        jwtAuthenticationFilter: JwtAuthenticationFilter, // com.kmouit.capstone.jwt.JwtAuthenticationFilter 주입
+        jwtAuthenticationFilter: JwtAuthenticationFilter,
     ): SecurityFilterChain {
         http
             .cors {  }
-            .csrf { it.disable() } // CSRF 비활성화 (테스트용)
-            .formLogin { it.disable() } // 기본 로그인 폼 비활성화 (필요에 따라 설정)
-            .httpBasic { it.disable() } // 기본 HTTP 인증 비활성화
+            .csrf { it.disable() }
+            .formLogin { it.disable() }
+            .httpBasic { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/api/member/join").permitAll() // 회원가입 API 허용
-                    .requestMatchers("/api/member/login").permitAll() // 로그인 API 허용
+                    .requestMatchers("/api/member/join").permitAll()
+                    .requestMatchers("/api/member/login").permitAll()
                     .requestMatchers("/api/member/admin-test").hasAnyRole("ADMIN")
                     .requestMatchers("/auth/refresh").permitAll()
-
-                    .anyRequest().authenticated() // 나머지는 인증 필요
+                    .anyRequest().authenticated()
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
 
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+            // 🚀 LoginFilter를 UsernamePasswordAuthenticationFilter 전에 실행
+            .addFilterBefore(LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil,refreshTokenService), UsernamePasswordAuthenticationFilter::class.java)
 
-            .addFilterAfter(LoginFilter(authenticationManager(authenticationConfiguration)), UsernamePasswordAuthenticationFilter::class.java)
+            // 🚀 JWT 인증 필터를 UsernamePasswordAuthenticationFilter 이후에 실행
+            .addFilterAfter(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
 
         return http.build()
     }

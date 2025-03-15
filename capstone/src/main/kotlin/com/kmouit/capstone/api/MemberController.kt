@@ -56,33 +56,7 @@ class MemberController(
     fun login(@RequestBody loginForm: LoginForm): ResponseEntity<Any> {
         println("===로그인 호출===")
         println(loginForm)
-        return try {
-            // 인증 시도
-            val authToken = UsernamePasswordAuthenticationToken(loginForm.username, loginForm.password)
-            val authentication = authenticationManager.authenticate(authToken)
-            SecurityContextHolder.getContext().authentication = authentication
-
-            val userDetails = authentication.principal as CustomUserDetails
-
-            val accessToken = jwtUtil.createAccessToken(
-                userDetails.username,
-                userDetails.authorities.toMutableList() // 권한 리스트
-            )
-
-            val refreshToken = jwtUtil.createRefreshToken(
-                userDetails.username,
-            )
-
-            // 리프레시 토큰을 서버에 저장
-            refreshTokenService.saveRefreshToken(userDetails.username, refreshToken)
-
-            // 액세스 토큰과 리프레시 토큰을 클라이언트에게 반환
-            return ResponseEntity.ok(TokenResponse(accessToken, refreshToken))
-
-        } catch (e: Exception) {
-            println("로그인 실패: ${e.message}")
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password")
-        }
+        return ResponseEntity.ok("로그인 요청 받음")
     }
 
 

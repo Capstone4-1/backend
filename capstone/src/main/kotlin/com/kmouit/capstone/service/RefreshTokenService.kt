@@ -8,6 +8,9 @@ class RefreshTokenService { //개발시엔 그냥 메모리에 저장, 추후 re
 
     fun saveRefreshToken(username: String, refreshToken: String) {
         tokenStorage[username] = refreshToken
+        for (mutableEntry in tokenStorage) {
+            println("토큰정보: ${mutableEntry}")
+        }
     }
 
     fun getRefreshToken(username: String): String? {

@@ -3,7 +3,6 @@ package com.kmouit.capstone.jwt
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.security.core.GrantedAuthority
 import org.springframework.stereotype.Component
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -16,6 +15,7 @@ class JWTUtil(
     @Value("\${spring.jwt.access-token-expiration}") private val accessTokenExpiration: Long,
     @Value("\${spring.jwt.refresh-token-expiration}") private val refreshTokenExpiration: Long
 ) {
+
 
     private val secretKey: SecretKey = SecretKeySpec(
         secret.toByteArray(StandardCharsets.UTF_8),
@@ -31,13 +31,13 @@ class JWTUtil(
             .get("username", String::class.java)
     }
 
-    fun getRole(token: String): String {
+    fun getRole(token: String): List<String> {
         return Jwts.parserBuilder()
             .setSigningKey(secretKey)
             .build()
             .parseClaimsJws(token)
             .body
-            .get("role", String::class.java)
+            .get("role", List::class.java) as List<String> // role을 List<String>으로 반환
     }
 
     fun isExpired(token: String): Boolean {
@@ -50,7 +50,7 @@ class JWTUtil(
             .before(Date())
     }
 
-    fun createAccessToken(username: String, role: MutableList<GrantedAuthority>, expiredMs: Long = accessTokenExpiration): String {
+    fun createAccessToken(username: String, role: List<String>, expiredMs: Long = accessTokenExpiration): String {
         return Jwts.builder()
             .claim("username", username)
             .claim("role", role)

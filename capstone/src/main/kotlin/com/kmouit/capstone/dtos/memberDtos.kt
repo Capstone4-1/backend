@@ -1,22 +1,21 @@
 package com.kmouit.capstone.dtos
 
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotEmpty
 
 
-data class LoginForm(
-    @NotEmpty
-    val username : String,
-    @NotEmpty
-    val password :String,
+data class LoginForm @JsonCreator constructor(
+    @JsonProperty("username") val username: String,
+    @JsonProperty("password") val password: String
 )
-
 data class JoinForm(
     @NotEmpty
-    val username: String,
+    var username: String,
     @NotEmpty
-    val password: String,
+    var password: String,
     @NotEmpty
-    val name :String,
+    var name :String,
     @NotEmpty
-    val email :String,
+    var email :String,
 )

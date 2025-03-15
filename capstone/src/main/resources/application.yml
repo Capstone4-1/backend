@@ -2,8 +2,8 @@ spring:
 
   jwt:
     secret: qwertyuiopasdfghjklzxcvbnmqwertyuifgHJDDGHDGDjshdjsd
-    access-token-expiration: 60000 # 1분 (ms)
-    refresh-token-expiration: 3600000 # 1시간 (ms)
+    access-token-expiration: 1800000 # 30분 (ms)
+    refresh-token-expiration: 604800000 # 7일 (ms)
 
   datasource:
     url: jdbc:h2:tcp://localhost/~/capstone

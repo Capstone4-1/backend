@@ -29,8 +29,8 @@ class JwtAuthenticationFilter(
     )
 
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
+        println("인증 필터 호출")
         val authorizationHeader = request.getHeader("Authorization")
-
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             val token = authorizationHeader.substring(7)
 
