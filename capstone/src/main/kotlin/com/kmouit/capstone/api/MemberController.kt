@@ -1,11 +1,12 @@
 package com.kmouit.capstone.api
 
-import com.kmouit.capstone.jwt.CustomUserDetails
 import com.kmouit.capstone.jwt.JWTUtil
 import com.kmouit.capstone.dtos.JoinForm
 import com.kmouit.capstone.dtos.LoginForm
-import com.kmouit.capstone.dtos.TokenResponse
+import com.kmouit.capstone.dtos.MemberDto
 import com.kmouit.capstone.exception.DuplicateUsernameException
+import com.kmouit.capstone.exception.NoSearchMemberException
+import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.service.MemberManageService
 import com.kmouit.capstone.service.RefreshTokenService
 import jakarta.servlet.http.HttpServletRequest
@@ -13,32 +14,26 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.server.ResponseStatusException
 
 
 @RestController
 @RequestMapping("/api/member")
 class MemberController(
-    private val memberManageService: MemberManageService,
-    private val jwtUtil: JWTUtil,
-    private val authenticationManager: AuthenticationManager,
-    private val refreshTokenService: RefreshTokenService
-) {
+    private val memberRepository: MemberRepository,
+    private val memberManageService: MemberManageService
+){
 
+    @PreAuthorize("permitAll()")
+    @GetMapping("/search")
+    fun getMemberByStudentId(@RequestParam studentId: String): ResponseEntity<MemberDto> {
 
-    @PreAuthorize("hasAnyRole('ADMIN')")
-    @GetMapping("/admin-test")
-    fun test(request: HttpServletRequest): ResponseEntity<String> { //테스트 api
-        val authorizationHeader  = request.getHeader("Authorization")
-        if (authorizationHeader != null){
-            println("======${authorizationHeader}")
-        }else{
-            println("버그")
-        }
-        return ResponseEntity.ok("관리자 하이")
+        println("member 조회 호출")
+        val member = memberRepository.findByUsername(studentId) ?: return ResponseEntity.notFound().build()
+        return ResponseEntity.ok(MemberDto(member.name!!, member.username!!))
     }
+
 
 
     @PostMapping("/join")
@@ -61,15 +56,7 @@ class MemberController(
 
 
     @PostMapping("/logout")
-    fun logout(@RequestBody logoutRequest: Map<String, String>): ResponseEntity<Any> {
-        val refreshToken = logoutRequest["refreshToken"] ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Refresh token is required")
+    fun logout(@RequestBody logoutRequest: Map<String, String>) {
 
-        try {
-            val username = jwtUtil.getUsername(refreshToken)
-            refreshTokenService.deleteRefreshToken(username)
-            return ResponseEntity.ok("Logged out successfully")
-        } catch (e: Exception) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token")
-        }
     }
 }

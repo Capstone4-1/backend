@@ -1,5 +1,7 @@
 package com.kmouit.capstone.exception
 
-class NoSearchMemberException (message :String) :RuntimeException(message) {
+import org.springframework.http.HttpStatus
+
+class NoSearchMemberException ( httpStatus: HttpStatus, message :String) :RuntimeException(message) {
 
 }

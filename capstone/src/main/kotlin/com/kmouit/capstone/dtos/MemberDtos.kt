@@ -19,3 +19,9 @@ data class JoinForm(
     @NotEmpty
     var email :String,
 )
+
+data class MemberDto(
+    @NotEmpty
+    var name :String,
+    var username :String,
+)

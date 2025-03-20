@@ -39,8 +39,10 @@ class AuthController (
 
         val userDetails = customUserDetailService.loadUserByUsername(username) as CustomUserDetails
         val roles = userDetails.authorities.map { it.authority }
-        val newAccessToken = jwtUtil.createAccessToken(username, roles)
-        val newRefreshToken = jwtUtil.createRefreshToken(username) // 7일 유효
+        val id = userDetails.getId()
+        val name = userDetails.getName()
+        val newAccessToken = jwtUtil.createAccessToken(id,name, username, roles)
+        val newRefreshToken = jwtUtil.createRefreshToken(id,username) // 7일 유효
 
         refreshTokenService.saveRefreshToken(username, newRefreshToken)
 

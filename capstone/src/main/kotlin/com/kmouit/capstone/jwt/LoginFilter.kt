@@ -1,6 +1,6 @@
 package com.kmouit.capstone.jwt
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.kmouit.capstone.dtos.LoginForm
 import com.kmouit.capstone.service.RefreshTokenService
 import jakarta.servlet.FilterChain
@@ -12,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import com.fasterxml.jackson.module.kotlin.readValue
 
 class LoginFilter(
     private val authenticationManager: AuthenticationManager,
@@ -25,7 +26,9 @@ class LoginFilter(
 
     override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse): Authentication {
         println("===로그인필터 호출===")
-        val loginForm = ObjectMapper().readValue(request.inputStream, LoginForm::class.java)
+
+        val objectMapper = jacksonObjectMapper()
+        val loginForm: LoginForm = objectMapper.readValue(request.inputStream)
         val username = loginForm.username
         val password = loginForm.password
 
@@ -46,9 +49,10 @@ class LoginFilter(
         authResult: Authentication?
     ) {
         val userDetails = authResult?.principal as CustomUserDetails
+
         val roles = userDetails.authorities.map { it.authority } // GrantedAuthority에서 authority 값만 추출해서 리스트로 변환
-        val accessToken = jwtUtil.createAccessToken(userDetails.username, roles) // roles를 전달
-        val refreshToken = jwtUtil.createRefreshToken(userDetails.username)
+        val accessToken = jwtUtil.createAccessToken(userDetails.getId() , userDetails.getName(),userDetails.username, roles) // roles를 전달
+        val refreshToken = jwtUtil.createRefreshToken(userDetails.getId(),userDetails.username)
 
         response?.contentType = "application/json"
         response?.writer?.write("""{"accessToken": "$accessToken", "refreshToken": "$refreshToken"}""")

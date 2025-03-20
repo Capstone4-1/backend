@@ -50,8 +50,10 @@ class JWTUtil(
             .before(Date())
     }
 
-    fun createAccessToken(username: String, role: List<String>, expiredMs: Long = accessTokenExpiration): String {
+    fun createAccessToken(id:Long,name:String,username: String, role: List<String>, expiredMs: Long = accessTokenExpiration): String {
         return Jwts.builder()
+            .claim("id", id)
+            .claim("name", name)
             .claim("username", username)
             .claim("role", role)
             .setIssuedAt(Date(System.currentTimeMillis()))
@@ -60,8 +62,9 @@ class JWTUtil(
             .compact()
     }
 
-    fun createRefreshToken(username: String, expiredMs: Long = refreshTokenExpiration): String {
+    fun createRefreshToken(id:Long, username: String, expiredMs: Long = refreshTokenExpiration): String {
         return Jwts.builder()
+            .claim("id", id)
             .claim("username", username)
             .setIssuedAt(Date(System.currentTimeMillis()))
             .setExpiration(Date(System.currentTimeMillis() + expiredMs))
