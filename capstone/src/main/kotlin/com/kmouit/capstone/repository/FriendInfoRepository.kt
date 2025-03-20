@@ -13,12 +13,14 @@ interface FriendInfoRepository : JpaRepository<FriendInfo, FriendInfoId> {
 
     /**
      * 받은 친구 요청 조회하기
+     * 페치조인으로 1+ n 문제 해결
      */
-    @Query("""
-        SELECT f 
-        FROM FriendInfo f
-        JOIN f.friendInfoId.receiveMember m
-        WHERE f.friendInfoId.receiveMember.id = :receivedId AND f.status = 'SENDING'
+    @Query("""  
+        from FriendInfo f
+        join fetch f.friendInfoId.receiveMember rm
+        join fetch f.friendInfoId.sendMember sm 
+        where rm.id = :receivedId 
+        and f.status = 'SENDING'
     """)
     fun findReceivedFriendInfoById(receivedId :Long) : List<FriendInfo>
 }

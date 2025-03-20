@@ -6,11 +6,9 @@ import jakarta.validation.constraints.NotBlank
 
 @Entity
 class Member(
-
     @Id @GeneratedValue
     @Column(name = "member_id")
     var id: Long? = null,
-
 
     @Column(nullable = false, unique = true)
     var username: String? = null ,  //학번임
@@ -22,7 +20,7 @@ class Member(
     var email: String? = null,
     var nickname: String? = null,
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @Enumerated(EnumType.STRING)
     var roles: MutableSet<Role> = mutableSetOf()
 )  {
