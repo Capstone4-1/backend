@@ -4,22 +4,13 @@ import com.kmouit.capstone.domain.Member
 
 
 data class RequestMemberDtoList(
-    var requestMember: List<RequestMemberDto>,
+    var requestMember: List<MemberDto>,
 )
 
-data class RequestMemberDto(
-    var id: Long? = null,
-    var username: String? = null,
-    var name: String? = null,
-) {
+data class FriendRequestDto(
+    var idToDecline: Long
+)
 
-    /**
-     * Member-> Dto 변환
-     */
-    constructor(member: Member) : this(
-        id = member.id,
-        username = member.username,
-        name = member.name
-    )
-
-}
+data class AcceptFriendRequestDto(
+    var idToAccept: Long
+)

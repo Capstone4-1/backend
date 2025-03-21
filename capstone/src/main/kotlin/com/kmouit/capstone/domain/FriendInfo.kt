@@ -11,16 +11,7 @@ class FriendInfo(
 
     @Enumerated(EnumType.STRING)
     var status :FriendStatus = FriendStatus.SENDING  //기본값은 요청중
-) {
-}
-
-
-//@Embeddable
-//data class FriendInfoId(
-//    val sendId:Long = 0, //보낸 사람
-//    val receiveId:Long = 0 // 받는 사람
-//): Serializable
-
+)
 
 @Embeddable
 data class FriendInfoId(

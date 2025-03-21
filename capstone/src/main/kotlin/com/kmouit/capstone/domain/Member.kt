@@ -20,7 +20,7 @@ class Member(
     var email: String? = null,
     var nickname: String? = null,
 
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     var roles: MutableSet<Role> = mutableSetOf()
 )  {

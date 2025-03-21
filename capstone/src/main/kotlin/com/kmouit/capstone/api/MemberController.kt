@@ -1,21 +1,14 @@
 package com.kmouit.capstone.api
 
-import com.kmouit.capstone.jwt.JWTUtil
 import com.kmouit.capstone.dtos.JoinForm
 import com.kmouit.capstone.dtos.LoginForm
 import com.kmouit.capstone.dtos.MemberDto
 import com.kmouit.capstone.exception.DuplicateUsernameException
-import com.kmouit.capstone.exception.NoSearchMemberException
 import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.service.MemberManageService
-import com.kmouit.capstone.service.RefreshTokenService
-import jakarta.servlet.http.HttpServletRequest
-import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.web.bind.annotation.*
-import org.springframework.web.server.ResponseStatusException
 
 
 @RestController
@@ -31,7 +24,7 @@ class MemberController(
 
         println("member 조회 호출")
         val member = memberRepository.findByUsername(studentId) ?: return ResponseEntity.notFound().build()
-        return ResponseEntity.ok(MemberDto(member.name!!, member.username!!))
+        return ResponseEntity.ok(MemberDto(member.id!!,member.name!!, member.username!!))
     }
 
 

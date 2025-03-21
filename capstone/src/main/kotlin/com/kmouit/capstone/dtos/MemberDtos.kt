@@ -2,6 +2,7 @@ package com.kmouit.capstone.dtos
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
+import com.kmouit.capstone.domain.Member
 import jakarta.validation.constraints.NotEmpty
 
 
@@ -21,7 +22,13 @@ data class JoinForm(
 )
 
 data class MemberDto(
-    @NotEmpty
+    var id :Long,
     var name :String,
     var username :String,
-)
+){
+    constructor(member: Member) : this(
+        id = member.id!!,
+        username = member.username!!,
+        name = member.name!!
+    )
+}
