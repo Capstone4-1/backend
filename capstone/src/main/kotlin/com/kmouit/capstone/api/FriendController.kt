@@ -76,6 +76,9 @@ class FriendController(
     }
 
 
+    /**
+     * 친구 목록 조회
+     */
     @PreAuthorize("permitAll()")
     @GetMapping("/{id}/accept-friend-list")
     fun getAcceptFriendList(@PathVariable id: Long): ResponseEntity<Map<String, Any>> {
@@ -89,7 +92,7 @@ class FriendController(
                         "message" to "친구 목록 조회 호출 성공"
                     ))
         } catch (e: Exception) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR) //500
                 .body(
                     mapOf(
                         "error" to "친구 목록 조회 실패",
@@ -100,6 +103,9 @@ class FriendController(
     }
 
 
+    /**
+     * 친구 요청
+     */
     @PreAuthorize("permitAll()")
     @PostMapping("/{id}/add-friend")
     fun addFriend(
@@ -111,11 +117,11 @@ class FriendController(
             friendService.addFriend(id, studentId)
             return ResponseEntity.ok(mapOf("message" to "요청 완료"))
         } catch (e: Exception) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR) //500
                 .body(
                     mapOf(
-                        "error" to "친구 추가 실패",
-                        "message" to (e.message ?: "알수없는 오류"),
+                        "error" to "친구 요청 실패",
+                        "message" to (e.message ?: "알 수 없는 오류"),
                     )
                 )
         }
