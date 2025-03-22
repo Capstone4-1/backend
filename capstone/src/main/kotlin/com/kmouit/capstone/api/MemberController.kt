@@ -10,46 +10,52 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 
-
+@PreAuthorize("permitAll()")
 @RestController
 @RequestMapping("/api/member")
 class MemberController(
     private val memberRepository: MemberRepository,
     private val memberManageService: MemberManageService
-){
-
-    @PreAuthorize("permitAll()")
+) {
+    /**
+     * 회원 검색
+     */
     @GetMapping("/search")
     fun getMemberByStudentId(@RequestParam studentId: String): ResponseEntity<MemberDto> {
-
-        println("member 조회 호출")
-        val member = memberRepository.findByUsername(studentId) ?: return ResponseEntity.notFound().build()
-        return ResponseEntity.ok(MemberDto(member.id!!,member.name!!, member.username!!))
+        val member = memberRepository.findByUsername(studentId)
+            ?: throw NoSuchElementException("대상 회원이 존재하지 않습니다")
+        return ResponseEntity.ok().body(MemberDto(member.id!!, member.name!!, member.username!!))
     }
 
-
-
+    /**
+     * 회원가입
+     */
     @PostMapping("/join")
-    fun join(@RequestBody joinForm: JoinForm): ResponseEntity<String> {
-        println("회원가입 호출")
-        try {
-            memberManageService.join(joinForm)
-        } catch (e: DuplicateUsernameException) {
-
-        }
-        return ResponseEntity.ok("회원 가입 성공")
+    fun join(@RequestBody joinForm: JoinForm): ResponseEntity<Map<String, String>> {
+        memberManageService.join(joinForm)
+        return ResponseEntity.ok().body(
+            mapOf("message" to "회원 가입 success")
+        )
     }
 
-    @PostMapping("/login")
-    fun login(@RequestBody loginForm: LoginForm): ResponseEntity<Any> {
-        println("===로그인 호출===")
-        println(loginForm)
-        return ResponseEntity.ok("로그인 요청 받음")
-    }
-
-
+    /**
+     * 로그아웃
+     */
     @PostMapping("/logout")
     fun logout(@RequestBody logoutRequest: Map<String, String>) {
-
+        //Todo
     }
+
+
+
+
+
+    /**
+     * 로그인
+     * 스프링 시큐리티로 대체
+     */
+//    @PostMapping("/login")
+//    fun login(@RequestBody loginForm: LoginForm): ResponseEntity<Any> {
+//        return ResponseEntity.ok("로그인 요청 받음")
+//    }
 }

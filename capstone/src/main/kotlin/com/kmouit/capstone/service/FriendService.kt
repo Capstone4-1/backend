@@ -45,13 +45,14 @@ class FriendService(
                 friendInfoRepository.findFriendInfoBySendMemberIdAndReceiveMemberId(
                     sendMemberId = idToAccept,
                     receiveMemberId = id
-                )
-                    ?: throw IllegalStateException("친구요청 수락 실패")
+                ) ?: throw NoSuchElementException()
             //반대방향도 추가
             addOppositeFriendInfo(id, idToAccept)
             friendInfo.status = FriendStatus.ACCEPTED
+        } catch (e: NoSuchElementException) {
+            throw NoSuchElementException("존재하지 않는 회원입니다")
         } catch (e: Exception) {
-            throw e
+            throw Exception("예상치 못한 오류")
         }
     }
 
@@ -83,7 +84,7 @@ class FriendService(
         for (friendInfo in friendInfoList) {
             println("friendInfo = ${friendInfo}")
         }
-        return friendInfoList.map { friendInfo ->  MemberDto(friendInfo.friendInfoId!!.receiveMember) }
+        return friendInfoList.map { friendInfo -> MemberDto(friendInfo.friendInfoId!!.receiveMember) }
     }
 
 
@@ -92,8 +93,8 @@ class FriendService(
      */
     @Transactional
     fun addFriend(id: Long, studentId: String) {
-        val sender = memberRepository.findById(id).orElseThrow { IllegalStateException("회원을 찾을수 없습니다") }
-        val receiver = memberRepository.findByUsername(studentId) ?: throw IllegalStateException("회원을 찾을수 없습니다")
+        val sender = memberRepository.findById(id).orElseThrow { NoSuchElementException("송신 회원을 찾을수 없습니다") }
+        val receiver = memberRepository.findByUsername(studentId) ?: throw NoSuchElementException("수신 회원을 찾을수 없습니다")
         val existingFriendInfo = friendInfoRepository.findById(FriendInfoId(sender, receiver))
         if (existingFriendInfo.isPresent) {
             throw IllegalStateException("이미 친구 요청을 보냈거나 친구 상태입니다")
