@@ -24,7 +24,6 @@ class AuthController (
     @PostMapping("/refresh")
     fun refreshToken(@RequestBody request: RefreshTokenRequest): ResponseEntity<Any> {
         val refreshToken = request.refreshToken
-
         val username = try {
             jwtUtil.getUsername(refreshToken)  // 리프레시 토큰에서 username 추출
         } catch (e: Exception) {
@@ -42,7 +41,7 @@ class AuthController (
         val id = userDetails.getId()
         val name = userDetails.getName()
         val newAccessToken = jwtUtil.createAccessToken(id,name, username, roles)
-        val newRefreshToken = jwtUtil.createRefreshToken(id,username) // 7일 유효
+        val newRefreshToken = jwtUtil.createRefreshToken(id,username)
 
         refreshTokenService.saveRefreshToken(username, newRefreshToken)
 

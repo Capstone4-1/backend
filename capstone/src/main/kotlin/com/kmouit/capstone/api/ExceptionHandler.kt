@@ -35,6 +35,6 @@ class ExceptionHandler {
     fun handleDuplicateUsernameException(e: DuplicateUsernameException): ResponseEntity<ErrorResponse> {
         logger.warn { "회원가입 회원 중복: $e" }
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(ErrorResponse(HttpStatus.CONFLICT.value(), e.message ?: "이미 가입된 회원입니다"))
+            .body(ErrorResponse(HttpStatus.CONFLICT.value(), e.message ?: "중복 에러"))
     }
 }

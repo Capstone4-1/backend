@@ -95,6 +95,9 @@ class FriendService(
     fun addFriend(id: Long, studentId: String) {
         val sender = memberRepository.findById(id).orElseThrow { NoSuchElementException("송신 회원을 찾을수 없습니다") }
         val receiver = memberRepository.findByUsername(studentId) ?: throw NoSuchElementException("수신 회원을 찾을수 없습니다")
+        if(sender.id == receiver.id){
+            throw IllegalStateException("자신에게 요청을 보낼 수 없습니다")
+        }
         val existingFriendInfo = friendInfoRepository.findById(FriendInfoId(sender, receiver))
         if (existingFriendInfo.isPresent) {
             throw IllegalStateException("이미 친구 요청을 보냈거나 친구 상태입니다")

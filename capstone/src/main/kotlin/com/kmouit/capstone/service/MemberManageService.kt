@@ -19,7 +19,7 @@ class MemberManageService(
 ) {
     fun join(joinForm: JoinForm){
         if(memberRepository.findByUsername(joinForm.username)!= null){
-            throw DuplicateUsernameException("중복된 username이 존재")
+            throw DuplicateUsernameException("이미 가입된 id 입니다")
         }
 
         val member = Member(

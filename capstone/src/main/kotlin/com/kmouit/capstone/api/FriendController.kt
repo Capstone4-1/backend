@@ -61,7 +61,9 @@ class FriendController(
         return ResponseEntity.ok().body(mapOf("message" to "친구 요청 수락 success"))
     }
 
-
+    /**
+     * 받은 친구 요청 목록 조회
+     */
     @GetMapping("/{id}/request-friend-list")
     fun getRequestFriendList(@PathVariable id: Long): ResponseEntity<Map<String, Any>> {
         val requestMemberDtoList = friendService.findRequestMembers(id)
@@ -72,7 +74,6 @@ class FriendController(
             )
         )
     }
-
 
     /**
      * 친구 목록 조회
