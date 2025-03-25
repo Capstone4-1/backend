@@ -20,6 +20,7 @@
     - **[도구 2]**: 설명.
     - **[도구 3]**: 설명.
 
-## 프로젝트 실행 방법
-### 1. 클론하기
+## ERD
+![image](https://github.com/user-attachments/assets/51663d85-c683-49e8-8881-d2a570dff934)
+
 
