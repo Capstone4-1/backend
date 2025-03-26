@@ -3,7 +3,7 @@ package com.kmouit.capstone.service
 import com.kmouit.capstone.domain.FriendInfo
 import com.kmouit.capstone.domain.FriendInfoId
 import com.kmouit.capstone.domain.FriendStatus
-import com.kmouit.capstone.dtos.MemberDto
+import com.kmouit.capstone.dtos.MemberSimpleDto
 import com.kmouit.capstone.repository.FriendInfoRepository
 import com.kmouit.capstone.repository.MemberRepository
 import org.springframework.stereotype.Service
@@ -69,9 +69,9 @@ class FriendService(
      * 받은 친구요청 목록 조회
      * List<FriendInfo> -> List<MemberDto> 변환
      */
-    fun findRequestMembers(id: Long): List<MemberDto> {
+    fun findRequestMembers(id: Long): List<MemberSimpleDto> {
         val friendInfoList = friendInfoRepository.findRequestFriendInfoById(id)
-        return friendInfoList.map { friendInfo -> MemberDto(friendInfo.friendInfoId!!.sendMember) }
+        return friendInfoList.map { friendInfo -> MemberSimpleDto(friendInfo.friendInfoId!!.sendMember) }
     }
 
 
@@ -79,12 +79,12 @@ class FriendService(
      * 친구 목록 조회
      * List<FriendInfo> -> List<MemberDto> 변환
      */
-    fun findAcceptMembers(id: Long): List<MemberDto> {
+    fun findAcceptMembers(id: Long): List<MemberSimpleDto> {
         val friendInfoList = friendInfoRepository.findFriendInfoById(id)
         for (friendInfo in friendInfoList) {
             println("friendInfo = ${friendInfo}")
         }
-        return friendInfoList.map { friendInfo -> MemberDto(friendInfo.friendInfoId!!.receiveMember) }
+        return friendInfoList.map { friendInfo -> MemberSimpleDto(friendInfo.friendInfoId!!.receiveMember) }
     }
 
 

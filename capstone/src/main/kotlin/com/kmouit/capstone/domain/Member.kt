@@ -22,6 +22,7 @@ class Member(
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
+    @Column(name = "role")
     var roles: MutableSet<Role> = mutableSetOf()
 )  {
 

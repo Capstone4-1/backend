@@ -2,22 +2,30 @@ package com.kmouit.capstone.api
 
 import com.kmouit.capstone.dtos.AcceptFriendRequestDto
 import com.kmouit.capstone.dtos.FriendRequestDto
+import com.kmouit.capstone.dtos.MemberSimpleDto
+import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.service.FriendService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @PreAuthorize("permitAll()")
 @RestController
 @RequestMapping("/api/friend")
 class FriendController(
     private val friendService: FriendService,
+    private val memberRepository: MemberRepository
 ) {
+
+    /**
+     * 회원 검색  friendController 로 이동예정
+     */
+    @GetMapping("/search")
+    fun getMemberByStudentId(@RequestParam studentId: String): ResponseEntity<MemberSimpleDto> {
+        val member = memberRepository.findByUsername(studentId)
+            ?: throw NoSuchElementException("대상 회원이 존재하지 않습니다")
+        return ResponseEntity.ok().body(MemberSimpleDto(member.id!!, member.name!!, member.username!!))
+    }
 
     /**
      * 친구 요청
@@ -31,7 +39,6 @@ class FriendController(
         friendService.addFriend(id, studentId)
         return ResponseEntity.ok().body("친구 요청 success")
     }
-
 
     /**
      * 친구 요청 거절
@@ -56,7 +63,6 @@ class FriendController(
         @RequestBody acceptFriendRequestDto: AcceptFriendRequestDto
     ): ResponseEntity<Map<String, String>> {
         val idToAccept = acceptFriendRequestDto.idToAccept
-        println(idToAccept)
         friendService.acceptFriendRequest(id, idToAccept)
         return ResponseEntity.ok().body(mapOf("message" to "친구 요청 수락 success"))
     }
@@ -80,7 +86,6 @@ class FriendController(
      */
     @GetMapping("/{id}/accept-friend-list")
     fun getAcceptFriendList(@PathVariable id: Long): ResponseEntity<Map<String, Any>> {
-        println("친구 목록 조회 호출")
         val acceptMemberDtoList = friendService.findAcceptMembers(id)
         return ResponseEntity.ok().body(
             mapOf(

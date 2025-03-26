@@ -1,7 +1,6 @@
 package com.kmouit.capstone.service
 
-import com.kmouit.capstone.Role.ADMIN
-import com.kmouit.capstone.Role.USER
+import com.kmouit.capstone.Role.*
 import com.kmouit.capstone.domain.Member
 import com.kmouit.capstone.dtos.JoinForm
 import com.kmouit.capstone.exception.DuplicateUsernameException
@@ -27,10 +26,11 @@ class MemberManageService(
             password = passwordEncoder.encode(joinForm.password),
             name = joinForm.name,
             email = joinForm.email,
+            nickname = joinForm.name
         )
-        member.roles.add(USER)
-        member.roles.add(ADMIN)
 
+        member.roles.add(USER)
+        member.roles.add(STUDENT)
         memberRepository.save(member)
     }
 

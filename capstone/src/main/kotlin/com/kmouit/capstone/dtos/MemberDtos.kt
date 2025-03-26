@@ -21,7 +21,7 @@ data class JoinForm(
     var email :String,
 )
 
-data class MemberDto(
+data class MemberSimpleDto(
     var id :Long,
     var name :String,
     var username :String,
@@ -32,3 +32,23 @@ data class MemberDto(
         name = member.name!!
     )
 }
+
+
+data class MemberDto(
+    var id:Long,
+    var username:String,
+    var name:String,
+    var email: String,
+    var nickname:String,
+    var roles: List<String>
+){
+    constructor(member: Member) : this(
+        id = member.id!!,
+        username = member.username!!,
+        name = member.name!!,
+        email = member.email!!,
+        nickname = member.nickname!!,
+        roles = member.roles.map { it.name }
+    )
+}
+

@@ -1,10 +1,8 @@
 package com.kmouit.capstone.dtos
 
-import com.kmouit.capstone.domain.Member
-
 
 data class RequestMemberDtoList(
-    var requestMember: List<MemberDto>,
+    var requestMember: List<MemberSimpleDto>,
 )
 
 data class FriendRequestDto(
