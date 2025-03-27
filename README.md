@@ -21,6 +21,7 @@
     - **[도구 3]**: 설명.
 
 ## ERD
-![image](https://github.com/user-attachments/assets/51663d85-c683-49e8-8881-d2a570dff934)
+![image](https://github.com/user-attachments/assets/2cf550e4-df68-45cc-b5cd-0f7d88839ed4)
+
 
 
