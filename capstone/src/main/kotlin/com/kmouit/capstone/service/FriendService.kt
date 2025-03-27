@@ -3,6 +3,7 @@ package com.kmouit.capstone.service
 import com.kmouit.capstone.domain.FriendInfo
 import com.kmouit.capstone.domain.FriendInfoId
 import com.kmouit.capstone.domain.FriendStatus
+import com.kmouit.capstone.domain.Member
 import com.kmouit.capstone.dtos.MemberSimpleDto
 import com.kmouit.capstone.repository.FriendInfoRepository
 import com.kmouit.capstone.repository.MemberRepository
@@ -15,21 +16,21 @@ import org.springframework.transaction.annotation.Transactional
 class FriendService(
     private val friendInfoRepository: FriendInfoRepository,
     private val memberRepository: MemberRepository,
+    private val noticeService: NoticeService
 
-    ) {
+) {
 
     /**
      * 친구요청 거절
+     * (친구요청 받은이, 보낸이)
      */
     @Transactional
     fun declineFriendRequest(receiveId: Long, idToDecline: Long) {
-        val friendInfo =
-            friendInfoRepository.findFriendInfoBySendMemberIdAndReceiveMemberId(
-                sendMemberId = idToDecline,
-                receiveMemberId = receiveId
-            )
-                ?: throw IllegalStateException("친구요청 거절 실패")
+        val sendMember = memberRepository.findById(idToDecline).orElseThrow()
+        val receivedMember = memberRepository.findById(receiveId).orElseThrow()
+        val friendInfo = friendInfoRepository.findById(FriendInfoId(sendMember, receivedMember)).orElseThrow { IllegalStateException("친구요청 거절 실패") }
         friendInfoRepository.delete(friendInfo)
+        noticeService.createNotice(sendMember, "${receivedMember.name}님이 친구요청을 거절하셨습니다!")
     }
 
 
@@ -41,14 +42,15 @@ class FriendService(
     @Transactional
     fun acceptFriendRequest(id: Long, idToAccept: Long) {
         try {
+            val sendMember = memberRepository.findById(idToAccept).orElseThrow()
+            val receivedMember = memberRepository.findById(id).orElseThrow()
+
             val friendInfo =
-                friendInfoRepository.findFriendInfoBySendMemberIdAndReceiveMemberId(
-                    sendMemberId = idToAccept,
-                    receiveMemberId = id
-                ) ?: throw NoSuchElementException()
+                friendInfoRepository.findById(FriendInfoId(sendMember, receivedMember)).orElseThrow { NoSuchElementException() }
             //반대방향도 추가
-            addOppositeFriendInfo(id, idToAccept)
+            addOppositeFriendInfo(sendMember, receivedMember)
             friendInfo.status = FriendStatus.ACCEPTED
+            noticeService.createNotice(sendMember, "${receivedMember.name}님이 친구요청을 수락하셨습니다!")
         } catch (e: NoSuchElementException) {
             throw NoSuchElementException("존재하지 않는 회원입니다")
         } catch (e: Exception) {
@@ -56,11 +58,9 @@ class FriendService(
         }
     }
 
-    fun addOppositeFriendInfo(id: Long, idToAccept: Long) {
-        val sendMember = memberRepository.findById(id).orElseThrow()
-        val receiveMember = memberRepository.findById(idToAccept).orElseThrow()
+    fun addOppositeFriendInfo(sendMember: Member, receivedMember: Member) {
         val oppositeFriendInfo =
-            FriendInfo(FriendInfoId(sendMember = sendMember, receiveMember = receiveMember), FriendStatus.ACCEPTED)
+            FriendInfo(FriendInfoId(sendMember = receivedMember, receiveMember = sendMember), FriendStatus.ACCEPTED)
         friendInfoRepository.save(oppositeFriendInfo)
     }
 
@@ -95,7 +95,7 @@ class FriendService(
     fun addFriend(id: Long, studentId: String) {
         val sender = memberRepository.findById(id).orElseThrow { NoSuchElementException("송신 회원을 찾을수 없습니다") }
         val receiver = memberRepository.findByUsername(studentId) ?: throw NoSuchElementException("수신 회원을 찾을수 없습니다")
-        if(sender.id == receiver.id){
+        if (sender.id == receiver.id) {
             throw IllegalStateException("자신에게 요청을 보낼 수 없습니다")
         }
         val existingFriendInfo = friendInfoRepository.findById(FriendInfoId(sender, receiver))
@@ -107,10 +107,7 @@ class FriendService(
             status = FriendStatus.SENDING
         )
         friendInfoRepository.save(newFriendInfo)
-    }
-
-    fun setStatusToAccept() {
-
+        noticeService.createNotice(receiver, "${sender.name}님이 친구 요청을 보냈습니다!")
     }
 
     fun deleteFriend() {

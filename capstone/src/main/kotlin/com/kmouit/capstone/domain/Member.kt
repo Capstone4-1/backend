@@ -2,7 +2,6 @@ package com.kmouit.capstone.domain
 
 import com.kmouit.capstone.Role
 import jakarta.persistence.*
-import jakarta.validation.constraints.NotBlank
 
 @Entity
 class Member(
@@ -11,10 +10,10 @@ class Member(
     var id: Long? = null,
 
     @Column(nullable = false, unique = true)
-    var username: String? = null ,  //학번임
+    var username: String? = null,  //학번임
 
     @Column(nullable = false)
-    var password: String? = null ,
+    var password: String? = null,
 
     var name: String? = null,
     var email: String? = null,
@@ -23,8 +22,22 @@ class Member(
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
-    var roles: MutableSet<Role> = mutableSetOf()
-)  {
+    var roles: MutableSet<Role> = mutableSetOf(),
+
+
+    @OneToMany(
+        fetch = FetchType.LAZY,
+        mappedBy = "member", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var notices: MutableList<Notice> = mutableListOf()
+) {
+    fun addNotice(notice: Notice) {
+        notice.member = this
+        notices.add(notice)
+    }
+    fun removeNotice(notice: Notice) {
+        notice.member = null
+        notices.remove(notice)
+    }
 
 
 }

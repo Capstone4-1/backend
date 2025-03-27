@@ -28,7 +28,6 @@ class MemberController(
     }
 
 
-
     @PostMapping("/join")
     fun join(@RequestBody joinForm: JoinForm): ResponseEntity<Map<String, String>> {
         memberManageService.join(joinForm)
