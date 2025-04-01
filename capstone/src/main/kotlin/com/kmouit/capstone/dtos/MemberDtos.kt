@@ -40,7 +40,8 @@ data class MemberDto(
     var name:String,
     var email: String,
     var nickname:String,
-    var roles: List<String>
+    var roles: List<String>,
+    var intro: String? = null
 ){
     constructor(member: Member) : this(
         id = member.id!!,
@@ -48,7 +49,10 @@ data class MemberDto(
         name = member.name!!,
         email = member.email!!,
         nickname = member.nickname!!,
-        roles = member.roles.map { it.name }
-    )
+        roles = member.roles.map { it.name },
+        intro = member.intro)
 }
 
+data class IntroRequest(
+    val intro: String
+)

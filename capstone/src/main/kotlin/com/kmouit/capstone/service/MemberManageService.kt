@@ -16,11 +16,17 @@ class MemberManageService(
     private val passwordEncoder: BCryptPasswordEncoder,
     private val memberRepository: MemberRepository
 ) {
+
+    fun setIntro(id :Long, intro :String){
+        val member = memberRepository.findById(id).orElseThrow { NoSuchElementException("존재하지 않는 회원") }
+        member.intro = intro
+    }
+
+
     fun join(joinForm: JoinForm){
         if(memberRepository.findByUsername(joinForm.username)!= null){
             throw DuplicateUsernameException("이미 가입된 id 입니다")
         }
-
         val member = Member(
             username = joinForm.username,
             password = passwordEncoder.encode(joinForm.password),
@@ -28,7 +34,6 @@ class MemberManageService(
             email = joinForm.email,
             nickname = joinForm.name
         )
-
         member.roles.add(USER)
         member.roles.add(STUDENT)
         memberRepository.save(member)

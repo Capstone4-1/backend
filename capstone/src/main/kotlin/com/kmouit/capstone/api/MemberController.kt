@@ -1,5 +1,6 @@
 package com.kmouit.capstone.api
 
+import com.kmouit.capstone.dtos.IntroRequest
 import com.kmouit.capstone.dtos.JoinForm
 import com.kmouit.capstone.dtos.MemberDto
 import com.kmouit.capstone.dtos.MemberSimpleDto
@@ -18,7 +19,7 @@ class MemberController(
 ) {
 
     /**
-     * 마이페이지용 유저 정보 조회
+     *  유저 정보 조회
      */
     @GetMapping("/search")
     fun searchMemberInfo(@RequestParam studentId: String): ResponseEntity<MemberDto> {
@@ -26,6 +27,21 @@ class MemberController(
             ?: throw NoSuchElementException("대상 회원이 존재하지 않습니다")
         return ResponseEntity.ok().body(MemberDto(member))
     }
+
+
+
+    @PostMapping("/{id}/set-intro")
+    fun responseSetIntro(
+        @PathVariable id: Long,
+        @RequestBody request : IntroRequest
+    ): ResponseEntity<Map<String, String>> {
+        memberManageService.setIntro(id, request.intro)
+        return ResponseEntity.ok().body(
+            mapOf("message" to "intro 수정 success")
+        )
+    }
+
+
 
 
     @PostMapping("/join")
