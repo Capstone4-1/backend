@@ -13,7 +13,11 @@ interface MemberRepository : JpaRepository<Member, Long> {
     fun findByUsername(username: String): Member?
 
     @Query(
-        "SELECT DISTINCT m FROM Member m LEFT JOIN FETCH m.notices WHERE m.id = :id"
+        "SELECT DISTINCT m " +
+                "FROM Member m " +
+                "LEFT JOIN FETCH m.notices n " +
+                "WHERE m.id = :id AND n.status = 'UNREAD'"
     )
-    fun findMemberAndNoticeById(id: Long): Optional<Member>
+    fun findMemberAndUnreadNoticesById(id: Long): Member?
+
 }

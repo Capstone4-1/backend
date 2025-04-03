@@ -37,10 +37,12 @@ data class MemberSimpleDto(
 
 
 data class NoticeDto(
+    var id : Long,
     var content : String,
     var date: LocalDateTime
 ){
     constructor(notice: Notice) : this(
+        id = notice.id!!,
         content = notice.content!!,
         date = notice.date!!,
     )
