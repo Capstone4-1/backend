@@ -2,6 +2,7 @@ package com.kmouit.capstone.service
 
 import com.kmouit.capstone.domain.Member
 import com.kmouit.capstone.domain.Notice
+import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.repository.NoticeRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -12,7 +13,8 @@ import java.time.LocalDateTime
 
 @Transactional(readOnly = true)
 class NoticeService(
-    private val noticeRepository: NoticeRepository
+    private val noticeRepository: NoticeRepository,
+    private val memberRepository: MemberRepository
 ) {
 
 
@@ -28,4 +30,9 @@ class NoticeService(
         member.addNotice(notice)
         noticeRepository.save(notice)
     }
+
+    /**
+     *
+     */
+
 }

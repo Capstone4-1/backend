@@ -1,5 +1,6 @@
 package com.kmouit.capstone.domain
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.kmouit.capstone.Role
 import jakarta.annotation.Nullable
 import jakarta.persistence.*
@@ -39,6 +40,8 @@ class Member(
     @Nullable
     var intro: String? = null,
 
+
+    @JsonIgnore
     @OneToMany(
         fetch = FetchType.LAZY,
         mappedBy = "member", cascade = [CascadeType.ALL], orphanRemoval = true

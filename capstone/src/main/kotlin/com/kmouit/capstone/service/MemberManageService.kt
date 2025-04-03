@@ -3,6 +3,7 @@ package com.kmouit.capstone.service
 import com.kmouit.capstone.Role.*
 import com.kmouit.capstone.domain.Member
 import com.kmouit.capstone.dtos.JoinForm
+import com.kmouit.capstone.dtos.NoticeDto
 import com.kmouit.capstone.exception.DuplicateUsernameException
 import com.kmouit.capstone.repository.MemberRepository
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
@@ -20,6 +21,12 @@ class MemberManageService(
     fun setIntro(id :Long, intro :String){
         val member = memberRepository.findById(id).orElseThrow { NoSuchElementException("존재하지 않는 회원") }
         member.intro = intro
+    }
+
+    fun getNotice(id: Long): List<NoticeDto> {
+        val member = memberRepository.findMemberAndNoticeById(id).orElseThrow { NoSuchElementException("존재하지 않는 회원") }
+        val notices = member.notices
+        return notices.map { NoticeDto(it) }
     }
 
 

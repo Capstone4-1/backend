@@ -1,11 +1,9 @@
 package com.kmouit.capstone.api
 
-import com.kmouit.capstone.dtos.IntroRequest
-import com.kmouit.capstone.dtos.JoinForm
-import com.kmouit.capstone.dtos.MemberDto
-import com.kmouit.capstone.dtos.MemberSimpleDto
+import com.kmouit.capstone.dtos.*
 import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.service.MemberManageService
+import com.kmouit.capstone.service.NoticeService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
@@ -15,7 +13,8 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("/api/member")
 class MemberController(
     private val memberRepository: MemberRepository,
-    private val memberManageService: MemberManageService
+    private val memberManageService: MemberManageService,
+    private val noticeService: NoticeService
 ) {
 
     /**
@@ -28,7 +27,18 @@ class MemberController(
         return ResponseEntity.ok().body(MemberDto(member))
     }
 
-
+    /**
+     *  온 알림 조회
+     */
+    @GetMapping("/{id}/notice")
+    fun responseGetNotices(
+        @PathVariable id: Long,
+    ): ResponseEntity<Map<String, List<NoticeDto>>> {
+        val dtoList = memberManageService.getNotice(id)
+        return ResponseEntity.ok().body(
+            mapOf("notices" to dtoList)
+        )
+    }
 
     @PostMapping("/{id}/set-intro")
     fun responseSetIntro(
@@ -40,9 +50,6 @@ class MemberController(
             mapOf("message" to "intro 수정 success")
         )
     }
-
-
-
 
     @PostMapping("/join")
     fun join(@RequestBody joinForm: JoinForm): ResponseEntity<Map<String, String>> {

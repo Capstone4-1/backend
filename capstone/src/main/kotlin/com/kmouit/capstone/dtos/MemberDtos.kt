@@ -3,7 +3,9 @@ package com.kmouit.capstone.dtos
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.kmouit.capstone.domain.Member
+import com.kmouit.capstone.domain.Notice
 import jakarta.validation.constraints.NotEmpty
+import java.time.LocalDateTime
 
 
 data class LoginForm @JsonCreator constructor(
@@ -33,6 +35,16 @@ data class MemberSimpleDto(
     )
 }
 
+
+data class NoticeDto(
+    var content : String,
+    var date: LocalDateTime
+){
+    constructor(notice: Notice) : this(
+        content = notice.content!!,
+        date = notice.date!!,
+    )
+}
 
 data class MemberDto(
     var id:Long,
