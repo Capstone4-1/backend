@@ -3,10 +3,11 @@ package com.kmouit.capstone.api
 import com.kmouit.capstone.dtos.*
 import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.service.MemberManageService
-import com.kmouit.capstone.service.NoticeService
+import com.kmouit.capstone.service.UploadService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 @PreAuthorize("permitAll()")
 @RestController
@@ -14,7 +15,7 @@ import org.springframework.web.bind.annotation.*
 class MemberController(
     private val memberRepository: MemberRepository,
     private val memberManageService: MemberManageService,
-    private val noticeService: NoticeService
+    private val s3Service: UploadService,
 ) {
 
     /**
@@ -43,11 +44,28 @@ class MemberController(
     @PostMapping("/{id}/set-intro")
     fun responseSetIntro(
         @PathVariable id: Long,
-        @RequestBody request : IntroRequest
+        @RequestBody request: IntroRequest,
     ): ResponseEntity<Map<String, String>> {
         memberManageService.setIntro(id, request.intro)
         return ResponseEntity.ok().body(
-            mapOf("message" to "intro 수정 success")
+            mapOf(
+                "message" to "intro 수정 success")
+        )
+    }
+
+    @PostMapping("/{id}/set-profile-image")
+    fun responseSetProfileImage(
+        @PathVariable id: Long,
+        @RequestPart("profileImage") profileImage: MultipartFile,
+    ): ResponseEntity<Map<String, String>> {
+
+
+        val profileImageUrl = memberManageService.setProfileImage(id, profileImage)
+        return ResponseEntity.ok().body(
+            mapOf(
+                "message" to "프로필 이미지가 성공적으로 수정되었습니다.",
+                "imageUrl" to profileImageUrl // 원한다면 여기 포함
+            )
         )
     }
 

@@ -17,14 +17,12 @@ class ExceptionHandler {
     private val logger = KotlinLogging.logger {}
 
 
-
     @ExceptionHandler(NullPointerException::class)
     fun handleNullPointerException(e: NullPointerException): ResponseEntity<ErrorResponse> {
         logger.warn { "해당 항목이 존재하지 않습니다: $e" }
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body(ErrorResponse(HttpStatus.NOT_FOUND.value(), e.message ?: "요청한 데이터를 찾을 수 없습니다"))
     }
-
 
     @ExceptionHandler(NoSuchElementException::class)
     fun handleNoSuchElementException(e: NoSuchElementException): ResponseEntity<ErrorResponse> {

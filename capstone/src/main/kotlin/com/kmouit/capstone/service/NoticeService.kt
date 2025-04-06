@@ -17,8 +17,6 @@ class NoticeService(
     private val noticeRepository: NoticeRepository,
     private val memberRepository: MemberRepository
 ) {
-
-
     /**
      * (알림 받을사람, 내용)
      */
