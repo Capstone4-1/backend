@@ -1,4 +1,7 @@
 spring:
+  autoconfigure:
+    exclude:
+      - io.awspring.cloud.autoconfigure.s3.S3AutoConfiguration
 
   jwt:
     secret: qwertyuiopasdfghjklzxcvbnmqwertyuifgHJDDGHDGDjshdjsd
@@ -22,11 +25,21 @@ spring:
         show_sql: true #생성한 SQL 이 다 보임 :) System out 을 통해 출력.
         format_sql: true
 
+cloud:
+  aws:
+    region:
+      static: ap-northeast-2
+    credentials:
+      access-key: AKIA6FZA3SFAYUSZSANJ
+      secret-key: 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
+    s3:
+      bucket: 2025-capstone-moai-bucket
 
 logging:
   level:
     org.hibernate.SQL: debug #sql 을 전부 DEBUG 모드로 남긴다는 뜻. Logger 를 통해.
     org.hibernate.orm.jdbc.bind: trace
+
 
 server:
   address: 0.0.0.0
