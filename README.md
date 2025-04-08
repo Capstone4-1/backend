@@ -22,8 +22,8 @@
 
 # API
 ## Member
- <details><summary>접기/펼치기
- </summary>
+ <details><summary>
+ </summary>회원가입
      접은 내용(ex 소스 코드)
  </details> 
 
