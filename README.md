@@ -22,8 +22,8 @@
 
 # API
 ## Member
- <details><summary>
- </summary>회원가입
+ <details>회원가입<summary>
+ </summary>
      접은 내용(ex 소스 코드)
  </details> 
 
