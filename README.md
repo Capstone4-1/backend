@@ -20,6 +20,10 @@
     - **[도구 2]**: 설명.
     - **[도구 3]**: 설명.
 
+
+## 접기 시작 <details><summary>접기/펼치기</summary> 접은 내용(ex 소스 코드)</details> ## 접기 끝
+출처: https://backendcode.tistory.com/173 [무작정 개발:티스토리]
+
 ## ERD
 ![image](https://github.com/user-attachments/assets/2cf550e4-df68-45cc-b5cd-0f7d88839ed4)
 
