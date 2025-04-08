@@ -20,7 +20,7 @@
     - **[도구 2]**: 설명.
     - **[도구 3]**: 설명.
 
-##API
+## API
  <details><summary>접기/펼치기</summary> 접은 내용(ex 소스 코드)</details> 
 출처: https://backendcode.tistory.com/173 [무작정 개발:티스토리]
 
