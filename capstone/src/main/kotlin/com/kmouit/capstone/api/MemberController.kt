@@ -1,11 +1,13 @@
 package com.kmouit.capstone.api
 
 import com.kmouit.capstone.dtos.*
+import com.kmouit.capstone.jwt.CustomUserDetails
 import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.service.MemberManageService
 import com.kmouit.capstone.service.UploadService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
@@ -17,6 +19,16 @@ class MemberController(
     private val memberManageService: MemberManageService,
     private val s3Service: UploadService,
 ) {
+
+    /**
+     *  새로고침시 정보 불러오기
+     */
+    @GetMapping("/me")
+    fun responseMe(@AuthenticationPrincipal userDetails: CustomUserDetails): ResponseEntity<MeDto> {
+        val member = userDetails.member
+        return ResponseEntity.ok().body(MeDto(member))
+    }
+
 
     /**
      *  유저 정보 조회
@@ -31,40 +43,49 @@ class MemberController(
     /**
      *  온 알림 조회
      */
-    @GetMapping("/{id}/notice")
-    fun responseGetNotices(
-        @PathVariable id: Long,
+    @GetMapping("/my-notices")
+    fun responseGetMyNotices(
+        @AuthenticationPrincipal userDetails: CustomUserDetails
     ): ResponseEntity<Map<String, List<NoticeDto>>> {
-        val dtoList = memberManageService.getNotice(id)
-        return ResponseEntity.ok().body(
-            mapOf("notices" to dtoList)
-        )
+        val dtoList = memberManageService.getNotice(userDetails.getId())
+        return ResponseEntity.ok(mapOf("notices" to dtoList))
     }
 
-    @PostMapping("/{id}/set-intro")
+
+    @PostMapping("/set-intro")
     fun responseSetIntro(
-        @PathVariable id: Long,
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
         @RequestBody request: IntroRequest,
     ): ResponseEntity<Map<String, String>> {
-        memberManageService.setIntro(id, request.intro)
-        return ResponseEntity.ok().body(
-            mapOf(
-                "message" to "intro 수정 success")
+        memberManageService.setIntro(userDetails.getId(), request.intro)
+        return ResponseEntity.ok(
+            mapOf("message" to "intro 수정 success")
         )
     }
 
-    @PostMapping("/{id}/set-profile-image")
+    @PostMapping("/set-profile-image")
     fun responseSetProfileImage(
-        @PathVariable id: Long,
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
         @RequestPart("profileImage") profileImage: MultipartFile,
     ): ResponseEntity<Map<String, String>> {
-
-
-        val profileImageUrl = memberManageService.setProfileImage(id, profileImage)
-        return ResponseEntity.ok().body(
+        val profileImageUrl = memberManageService.setProfileImage(userDetails.getId(), profileImage)
+        return ResponseEntity.ok(
             mapOf(
                 "message" to "프로필 이미지가 성공적으로 수정되었습니다.",
-                "imageUrl" to profileImageUrl // 원한다면 여기 포함
+                "imageUrl" to profileImageUrl
+            )
+        )
+    }
+
+    @DeleteMapping("/delete-profile-image")
+    fun deleteProfileImage(
+        @AuthenticationPrincipal userDetails: CustomUserDetails
+    ): ResponseEntity<Map<String, Any>> {
+        val defaultImageUrl = memberManageService.deleteProfileImage(userDetails.getId())
+        return ResponseEntity.ok(
+            mapOf(
+                "message" to "프로필 이미지가 삭제되었습니다.",
+                "imageUrl" to defaultImageUrl  // ✅ 기본 이미지 URL을 응답에 포함
             )
         )
     }

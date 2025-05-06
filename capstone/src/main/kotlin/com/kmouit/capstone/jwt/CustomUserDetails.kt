@@ -6,7 +6,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
 
 class CustomUserDetails(
-    private val member: Member,
+    val member: Member,
 ) : UserDetails {
 
     override fun getAuthorities(): MutableList<out GrantedAuthority> {

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository
 interface FriendInfoRepository : JpaRepository<FriendInfo, FriendInfoId> {
     /**
      * 받은 친구 요청 조회하기
-     * 페치조인으로 1+ n 문제 해결
+     * 패치조인으로 1+ n 문제 해결
      */
     @Query(
         """  

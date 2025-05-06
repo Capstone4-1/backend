@@ -30,7 +30,7 @@ class Member(
     @Column(nullable = false)
     var nickname: String? = null,
 
-    var profileImageUrl: String? = null,
+    var profileImageUrl: String? =null,
     @ElementCollection(fetch = FetchType.EAGER)
     @Enumerated(EnumType.STRING)
     @Column(name = "role")

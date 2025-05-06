@@ -1,5 +1,6 @@
 package com.kmouit.capstone.service
 
+import com.kmouit.capstone.DEFAULT_PROFILE_IMAGE_URL
 import com.kmouit.capstone.MAX_FILE_SIZE
 import com.kmouit.capstone.Role.*
 import com.kmouit.capstone.domain.Member
@@ -21,13 +22,13 @@ class MemberManageService(
     private val uploadService: UploadService,
 ) {
 
-
     /**
      * 프로필 사진 설정
      */
     @Transactional
     fun setProfileImage(id: Long, file: MultipartFile): String {
         val maxSizeInBytes = MAX_FILE_SIZE // 1MB
+
         if (file.size > maxSizeInBytes) {
             throw IllegalArgumentException("파일 크기는 ${MAX_FILE_SIZE / 1024 / 1024}MB 이하여야 합니다.")
         }
@@ -36,6 +37,14 @@ class MemberManageService(
         val imageUrl = uploadService.uploadProfileImage(file)
         member.profileImageUrl = imageUrl
         return imageUrl
+    }
+
+    fun deleteProfileImage(id: Long): String {
+        val member =
+            memberRepository.findById(id).orElseThrow { NoSuchElementException("존재하지 않는 회원 : deleteProfileImage") }
+            member.profileImageUrl = DEFAULT_PROFILE_IMAGE_URL
+
+        return member.profileImageUrl!!
     }
 
     /**
@@ -71,12 +80,15 @@ class MemberManageService(
             password = passwordEncoder.encode(joinForm.password),
             name = joinForm.name,
             email = joinForm.email,
-            nickname = joinForm.name
+            nickname = joinForm.name,
+            profileImageUrl = DEFAULT_PROFILE_IMAGE_URL
         )
         member.roles.add(USER)
         member.roles.add(STUDENT)
         memberRepository.save(member)
     }
+
+
 
 
 }

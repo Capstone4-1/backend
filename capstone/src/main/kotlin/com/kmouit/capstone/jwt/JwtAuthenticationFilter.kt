@@ -1,5 +1,6 @@
 package com.kmouit.capstone.jwt
 
+import com.kmouit.capstone.service.CustomUserDetailService
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
@@ -17,10 +18,10 @@ import java.nio.charset.StandardCharsets
 import java.security.SignatureException
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
-
 @Component
 class JwtAuthenticationFilter(
-    @Value("\${spring.jwt.secret}") private val secret: String, // secret key to validate JWT signature
+    @Value("\${spring.jwt.secret}") private val secret: String,
+    private val customUserDetailService: CustomUserDetailService  // ✅
 ) : OncePerRequestFilter() {
 
     private val secretKey: SecretKey = SecretKeySpec(
@@ -29,7 +30,6 @@ class JwtAuthenticationFilter(
     )
 
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
-        println("인증 필터 호출")
         val authorizationHeader = request.getHeader("Authorization")
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             val token = authorizationHeader.substring(7)
@@ -40,12 +40,14 @@ class JwtAuthenticationFilter(
                     .build()
                     .parseClaimsJws(token)
                     .body
-
                 val username = claims["username"] as String
-                val roles = claims["role"] as List<String>
-                val authorities = roles.map { role -> SimpleGrantedAuthority(role) }
-                val authentication: Authentication = UsernamePasswordAuthenticationToken(username, null, authorities)
 
+                // ✅ 여기 핵심 수정
+                val userDetails = customUserDetailService.loadUserByUsername(username)
+
+                val authentication = UsernamePasswordAuthenticationToken(
+                    userDetails, null, userDetails.authorities
+                )
                 SecurityContextHolder.getContext().authentication = authentication
 
             } catch (e: ExpiredJwtException) {

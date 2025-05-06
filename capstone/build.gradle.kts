@@ -32,6 +32,7 @@ dependencies {
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.2")
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.2")
 	implementation("io.awspring.cloud:spring-cloud-aws-starter-s3:3.1.1")
+	implementation("mysql:mysql-connector-java:8.0.33")
 
 
 	implementation("org.jetbrains.kotlin:kotlin-reflect")

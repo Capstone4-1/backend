@@ -44,4 +44,14 @@ class ExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body(ErrorResponse(HttpStatus.CONFLICT.value(), e.message ?: "중복 에러"))
     }
+
+    @ExceptionHandler(DuplicateMailRoomException::class)
+    fun handleDuplicateUsernameException(e: DuplicateMailRoomException): ResponseEntity<ErrorResponse> {
+        logger.warn { "채팅방 생성 중복: $e" }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(ErrorResponse(HttpStatus.CONFLICT.value(), e.message ?: "중복 에러"))
+    }
 }
+
+
+class DuplicateMailRoomException(message: String) : RuntimeException(message)

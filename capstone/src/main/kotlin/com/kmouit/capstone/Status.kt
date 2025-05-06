@@ -7,3 +7,8 @@ enum class Role {
 enum class NoticeInfoStatus{
     UNREAD, READ
 }
+
+
+enum class MailStatus{
+    NEW, OLD
+}

@@ -8,7 +8,4 @@ class CapstoneApplication
 
 fun main(args: Array<String>) {
 	val context = runApplication<CapstoneApplication>(*args)
-
-
-
 }
