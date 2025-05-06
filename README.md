@@ -20,6 +20,30 @@
     - **[도구 2]**: 설명.
     - **[도구 3]**: 설명.
 
+# API
+## Member
+ <details><summary>회원가입
+ </summary>
+     {
+  "message": "회원 가입 success"
+}
+ </details> 
+
+  <details><summary>접기/펼치기
+ </summary>
+     접은 내용(ex 소스 코드)
+ </details> 
+
+  <details><summary>접기/펼치기
+ </summary>
+     접은 내용(ex 소스 코드)
+ </details> 
+
+  <details><summary>접기/펼치기
+ </summary>
+     접은 내용(ex 소스 코드)
+ </details> 
+
 ## ERD
 ![image](https://github.com/user-attachments/assets/2cf550e4-df68-45cc-b5cd-0f7d88839ed4)
 
