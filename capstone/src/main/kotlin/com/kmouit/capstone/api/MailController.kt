@@ -42,5 +42,20 @@ class MailController(
         )
     }
 
+    @DeleteMapping("/exit-room/{id}")
+    fun responseExitRoom(
+        @PathVariable id: Long,
+        @AuthenticationPrincipal userDetails: CustomUserDetails
+    ): ResponseEntity<Map<String, Any>> {
+        mailService.exitMailRoom(id)
+        println("삭제 요청: roomId=$id, 요청자=${userDetails.getName()}")
+        return ResponseEntity.ok(
+            mapOf(
+                "message" to "채팅방 삭제 성공",
+            )
+        )
+    }
+
+
 
 }

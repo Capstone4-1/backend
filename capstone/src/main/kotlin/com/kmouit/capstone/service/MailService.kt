@@ -48,8 +48,6 @@ class MailService(
 
         mailRoom.mailRoomInfos.add(mailRoomInfo1)
         mailRoom.mailRoomInfos.add(mailRoomInfo2)
-        mailRoomInfoRepository.save(mailRoomInfo1)
-        mailRoomInfoRepository.save(mailRoomInfo2)
 
         return mailRoom.id!!
     }
@@ -89,10 +87,24 @@ class MailService(
         }
     }
 
+
     /**
      * 채팅방 삭제
      */
-    //Todo
+    @Transactional
+    fun exitMailRoom(id: Long) {
+        val exists = mailRoomRepository.existsById(id)
+        if (!exists) {
+            throw IllegalArgumentException("해당 채팅방이 존재하지 않습니다. id=$id")
+        }
+
+        try {
+            mailRoomRepository.deleteById(id)
+        } catch (e: Exception) {
+            throw RuntimeException("Room 삭제 도중 오류 발생", e)
+        }
+    }
+
 
 }
 
