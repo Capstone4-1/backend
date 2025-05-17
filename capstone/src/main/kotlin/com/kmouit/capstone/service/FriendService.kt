@@ -81,9 +81,6 @@ class FriendService(
      */
     fun findAcceptMembers(id: Long): List<MemberSimpleDto> {
         val friendInfoList = friendInfoRepository.findFriendInfoById(id)
-        for (friendInfo in friendInfoList) {
-            println("friendInfo = $friendInfo")
-        }
         return friendInfoList.map { friendInfo -> MemberSimpleDto(friendInfo.friendInfoId!!.receiveMember) }
     }
 

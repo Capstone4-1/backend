@@ -26,4 +26,7 @@ interface MailRoomInfoRepository : JpaRepository<MailRoomInfo, MailRoomInfoId> {
 """
     )
     fun findRoomIdByTwoMembers(memberId1: Long, memberId2: Long): Long?
+
+
+    fun existsByIdMailRoomIdAndIdMemberId(mailRoomId: Long, memberId: Long): Boolean
 }

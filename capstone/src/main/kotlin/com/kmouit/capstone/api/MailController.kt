@@ -34,6 +34,11 @@ class MailController(
         @AuthenticationPrincipal userDetails: CustomUserDetails,
     ): ResponseEntity<Map<String, Any>> {
         val roomDtos = mailService.getMyRooms(userDetails.getId())
+
+        println("-----------------------------------------------------------------------")
+        for (roomDto in roomDtos) {
+            println("roomDto = ${roomDto}")
+        }
         return ResponseEntity.ok(
             mapOf(
                 "roomDtos" to roomDtos,
@@ -56,6 +61,41 @@ class MailController(
         )
     }
 
+    /**
+     * 채팅방 메시지들 조회
+     */
+    @GetMapping("/messages/{roomId}")
+    fun responseGetMessages(
+        @PathVariable roomId: Long,
+        @AuthenticationPrincipal userDetails: CustomUserDetails
+    ): ResponseEntity<Map<String, Any>> {
+        val messages = mailService.searchMessages(roomId, userDetails.getId())
+        return ResponseEntity.ok(
+            mapOf(
+                "messages" to messages,
+                "message" to "채팅방 목록 조회 성공"
+            )
+        )
+    }
+
+    /**
+     * 메일보내기 방 id, 상대방 id
+     */
+    @PostMapping("send-mail/{roomId}")
+    fun sendMail(
+        @PathVariable roomId: Long,
+        @RequestBody request: SendMailRequest,
+        @AuthenticationPrincipal user: CustomUserDetails
+    ): ResponseEntity<Map<String, String>> {
+        println("홏풀------------------------------------------------")
+        mailService.sendMessage(roomId, user.member.id!!,request.partnerId, request.content)
+        return ResponseEntity.ok(
+            mapOf(
+                "message" to "메일 보내기 성공 : ${request.content}"
+            )
+        )
+    }
+    data class SendMailRequest(val content: String, val partnerId :Long)
 
 
 }

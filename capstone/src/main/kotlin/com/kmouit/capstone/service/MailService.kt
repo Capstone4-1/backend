@@ -3,12 +3,14 @@ package com.kmouit.capstone.service
 import com.kmouit.capstone.MailStatus
 import com.kmouit.capstone.api.DuplicateMailRoomException
 import com.kmouit.capstone.domain.*
+import com.kmouit.capstone.dtos.MailDto
 import com.kmouit.capstone.dtos.MemberSimpleDto
+import com.kmouit.capstone.exception.NoSearchMemberException
 import com.kmouit.capstone.repository.MailRepository
 import com.kmouit.capstone.repository.MailRoomInfoRepository
 import com.kmouit.capstone.repository.MailRoomRepository
 import com.kmouit.capstone.repository.MemberRepository
-import org.springframework.dao.DuplicateKeyException
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -19,7 +21,7 @@ class MailService(
     val mailRepository: MailRepository,
     val mailRoomRepository: MailRoomRepository,
     val mailRoomInfoRepository: MailRoomInfoRepository,
-    val memberRepository: MemberRepository
+    val memberRepository: MemberRepository,
 ) {
     @Transactional
     fun createMailRoom(username1: String, username2: String): Long {
@@ -106,9 +108,49 @@ class MailService(
     }
 
 
+    /**
+     * 특정 채팅방 메시지들 가져오기
+     */
+    fun searchMessages(roomId: Long, memberId: Long): List<MailDto> {
+        checkRoomAccess(roomId, memberId)
+        val mailRoom = mailRoomRepository.findById(roomId).orElse(null)
+            ?: return mutableListOf()
+        val mailDtos = mailRoom.mails.map { it.toDto() }
+        for (mailDto in mailDtos) {
+            println("mailDto = ${mailDto.content}")
+        }
+        return mailDtos
+    }
+
+    private fun checkRoomAccess(roomId: Long, memberId: Long) { //검증 메서드
+        val hasAccess = mailRoomInfoRepository.existsByIdMailRoomIdAndIdMemberId(roomId, memberId)
+        if (!hasAccess) {
+            throw AccessDeniedException("해당 채팅방($roomId)에 접근 권한이 없습니다.")
+        }
+    }
+
+
+    @Transactional
+    fun sendMessage(roomId: Long, memberId: Long, partnerId: Long, content: String) {
+        checkRoomAccess(roomId, memberId)
+        val mailRoom = mailRoomRepository.findById(roomId).orElse(null)
+        val partner =
+            memberRepository.findById(partnerId).orElse(null) ?: throw NoSuchElementException("send message: 멤버조회오류")
+        val sender =
+            memberRepository.findById(memberId).orElse(null) ?: throw NoSuchElementException("send message: 멤버조회오류")
+        val newMail = Mail(
+            mailRoom = mailRoom,
+            receiver = partner,
+            sender = sender,
+            content = content,
+            date = LocalDateTime.now(),
+            status = MailStatus.NEW
+        )
+        mailRoom.mails.add(newMail)
+    }
 }
 
 data class RoomDto(
     val roomId: Long,
-    val partner :MemberSimpleDto
+    val partner: MemberSimpleDto,
 )
