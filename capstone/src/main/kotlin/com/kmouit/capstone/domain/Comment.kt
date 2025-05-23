@@ -6,22 +6,16 @@ import jakarta.persistence.Id
 import java.time.LocalDateTime
 
 
-class Post(
+class Comment (
     val id: Long? = null,
 
-    val title : String? = null,
+    val content : String? = null,
 
     val createdBy : Member? = null,
 
     val createdDate : LocalDateTime? = null,
 
-    val content : String? = null,
-
-    val board : Board? = null,
-
-    val comments :ArrayList<Comment> = arrayListOf(),
+    val post: Post? = null,
 
     val like : Int = 0
-
-
-    )
+)
