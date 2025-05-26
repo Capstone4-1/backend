@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull
 
 @Entity
 class Member(
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "member_id")
     var id: Long? = null,
 

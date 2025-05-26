@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.multipart.MultipartFile
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials
-import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.regions.Region
@@ -17,7 +16,7 @@ import java.time.Duration
 import java.util.*
 
 @Service
-class UploadService(
+class S3UploadService(
     private val s3Client: S3Client,
     @Value("\${cloud.aws.credentials.access-key}") private val accessKey: String,
     @Value("\${cloud.aws.credentials.secret-key}") private val secretKey: String,

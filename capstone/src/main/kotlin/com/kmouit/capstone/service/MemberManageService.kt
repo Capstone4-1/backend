@@ -19,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile
 class MemberManageService(
     private val passwordEncoder: BCryptPasswordEncoder,
     private val memberRepository: MemberRepository,
-    private val uploadService: UploadService,
+    private val uploadService: S3UploadService,
 ) {
 
     /**

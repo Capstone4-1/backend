@@ -7,7 +7,7 @@ import java.time.LocalDateTime
 
 @Entity
 class Mail(
-    @Id @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "mail_id")
     val id: Long? = null,
 

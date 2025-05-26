@@ -7,7 +7,7 @@ import java.time.LocalDateTime
 
 @Entity
 class Notice (
-    @Id  @GeneratedValue
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id : Long? = null,
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
