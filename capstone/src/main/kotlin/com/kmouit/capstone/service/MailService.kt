@@ -5,7 +5,6 @@ import com.kmouit.capstone.api.DuplicateMailRoomException
 import com.kmouit.capstone.domain.*
 import com.kmouit.capstone.dtos.MailDto
 import com.kmouit.capstone.dtos.MemberSimpleDto
-import com.kmouit.capstone.exception.NoSearchMemberException
 import com.kmouit.capstone.repository.MailRepository
 import com.kmouit.capstone.repository.MailRoomInfoRepository
 import com.kmouit.capstone.repository.MailRoomRepository
@@ -72,8 +71,8 @@ class MailService(
      */
     fun getMyRooms(memberId: Long): List<RoomDto> {
         val roomIds = mailRoomInfoRepository.findMailRoomIdsByMemberId(memberId)
-
         if (roomIds.isEmpty()) return emptyList()
+
         val mailRooms = mailRoomRepository.findAllWithMembersByRoomIds(roomIds)
 
         return mailRooms.map { room ->
@@ -82,9 +81,12 @@ class MailService(
                 .firstOrNull { it.id != memberId }
                 ?: throw NoSuchElementException("상대방 정보를 찾을 수 없습니다.")
 
+            val newMailCount = mailRepository.countNewMailsByRoomIdAndReceiverId(room.id!!, memberId)
+
             RoomDto(
                 roomId = room.id!!,
-                partner = MemberSimpleDto(partner)
+                partner = MemberSimpleDto(partner),
+                newMailCount = newMailCount
             )
         }
     }
@@ -152,9 +154,16 @@ class MailService(
     fun countNewMail(memberId: Long): Int {
         return mailRepository.countByReceiverIdAndStatus(memberId, MailStatus.NEW)
     }
+
+    @Transactional
+    fun markAllAsRead(roomId: Long, memberId: Long) {
+        val unreadMails = mailRepository.findNewMailsByRoomIdAndReceiverId(roomId, memberId)
+        unreadMails.forEach { it.status = MailStatus.OLD }
+    }
 }
 
 data class RoomDto(
     val roomId: Long,
     val partner: MemberSimpleDto,
+    val newMailCount : Int
 )
