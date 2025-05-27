@@ -60,14 +60,9 @@ class MemberManageService(
      * 사용자 알림 가져오기
      */
     fun getNotice(id: Long): List<NoticeDto> {
-        try {
-            val member = memberRepository.findMemberAndUnreadNoticesById(id)
-            val notices = member!!.notices
-            return notices.map { NoticeDto(it) }
-        } catch (e: NullPointerException) {
-            throw NullPointerException("알림이 없습니다.")
-        }
-
+        val member = memberRepository.findMemberAndUnreadNoticesById(id)
+        val notices = member?.notices ?: return emptyList()
+        return notices.map { NoticeDto(it) }
     }
 
 

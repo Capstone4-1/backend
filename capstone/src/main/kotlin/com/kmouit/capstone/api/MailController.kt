@@ -98,4 +98,12 @@ class MailController(
     data class SendMailRequest(val content: String, val partnerId :Long)
 
 
+    /**
+     * 메일 개수 체크
+     */
+    @GetMapping("/check-new")
+    fun checkMail(@AuthenticationPrincipal userDetails: CustomUserDetails): ResponseEntity<Map<String, Int>> {
+        val newMailCount = mailService.countNewMail(userDetails.member.id!!)
+        return ResponseEntity.ok(mapOf("newMailCount" to newMailCount))
+    }
 }

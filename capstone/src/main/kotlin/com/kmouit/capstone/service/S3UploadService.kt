@@ -49,15 +49,12 @@ class S3UploadService(
 
 
     //todo 테스트 안해봄
-
     fun getPresignedUrl(filename: String): Map<String, String> {
-        val encodedFilename = URLEncoder.encode(filename, Charsets.UTF_8).replace("+", "%20")
-        val objectKey = "uploads/$encodedFilename"
+        val objectKey = "uploads/$filename"  // ✅ 인코딩 제거: S3가 자동 처리
 
         val putObjectRequest = PutObjectRequest.builder()
             .bucket(bucket)
             .key(objectKey)
-            .contentType("image/*")
             .build()
 
         val presignedRequest: PresignedPutObjectRequest =

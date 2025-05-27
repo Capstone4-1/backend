@@ -40,7 +40,6 @@ class Member(
     @Nullable
     var intro: String? = null,
 
-
     @JsonIgnore
     @OneToMany(
         fetch = FetchType.LAZY,

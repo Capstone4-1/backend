@@ -148,6 +148,10 @@ class MailService(
         )
         mailRoom.mails.add(newMail)
     }
+
+    fun countNewMail(memberId: Long): Int {
+        return mailRepository.countByReceiverIdAndStatus(memberId, MailStatus.NEW)
+    }
 }
 
 data class RoomDto(
