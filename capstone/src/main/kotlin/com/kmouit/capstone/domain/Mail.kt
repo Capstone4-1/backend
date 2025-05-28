@@ -9,11 +9,11 @@ import java.time.LocalDateTime
 class Mail(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "mail_id")
-    val id: Long? = null,
+    var id: Long? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mail_room_id")
-    val mailRoom: MailRoom? = null,
+    var mailRoom: MailRoom? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id") // 수정

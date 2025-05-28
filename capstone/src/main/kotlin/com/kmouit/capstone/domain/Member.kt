@@ -32,6 +32,10 @@ class Member(
 
     var profileImageUrl: String? =null,
     @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+        name = "member_roles",
+        joinColumns = [JoinColumn(name = "member_id")]
+    )
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     var roles: MutableSet<Role> = mutableSetOf(),

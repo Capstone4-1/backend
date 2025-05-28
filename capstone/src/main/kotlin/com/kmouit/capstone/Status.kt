@@ -1,7 +1,17 @@
 package com.kmouit.capstone
 
-enum class Role {
-    USER, STUDENT, MANAGER, PROFESSOR, ADMIN;
+enum class Role(val value:String) {
+    USER("USER"),
+    STUDENT("STUDENT"),
+    MANAGER("MANAGER"),
+    PROFESSOR("PROFESSOR"),
+    ADMIN("ADMIN"),
+    SYSTEM("SYSTEM");
+
+    companion object {
+        fun from(value: String): Role? =
+            Role.entries.find { it.value == value.uppercase() }
+    }
 }
 
 enum class NoticeInfoStatus{
@@ -21,5 +31,15 @@ enum class BoardType(val value: String) {
     companion object {
         fun from(value: String): BoardType? =
             entries.find { it.value == value.uppercase() }
+    }
+}
+
+enum class CheckListItemStatus(val value: String) {
+    DONE("DONE"),
+    PENDING("PENDING");
+
+    companion object {
+        fun from(value: String): CheckListItemStatus? =
+            CheckListItemStatus.entries.find { it.value == value.uppercase() }
     }
 }

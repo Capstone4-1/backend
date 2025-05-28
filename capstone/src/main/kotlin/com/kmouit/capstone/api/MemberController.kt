@@ -5,6 +5,7 @@ import com.kmouit.capstone.jwt.CustomUserDetails
 import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.service.MemberManageService
 import com.kmouit.capstone.service.S3UploadService
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -49,6 +50,25 @@ class MemberController(
     ): ResponseEntity<Map<String, List<NoticeDto>>> {
         val dtoList = memberManageService.getNotice(userDetails.getId())
         return ResponseEntity.ok(mapOf("notices" to dtoList))
+    }
+
+    @PostMapping("/set-nickname")
+    fun responseSetNickname(
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+        @RequestBody payload: Map<String, String>
+    ): ResponseEntity<Map<String, String>> {
+        val newNickname = payload["nickname"]
+            ?: return ResponseEntity.badRequest().body(mapOf("message" to "nickname 누락"))
+        if (memberRepository.existsByNickname(newNickname)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(mapOf("message" to "중복된 닉네임입니다."))
+        }
+        val member = memberRepository.findById(userDetails.getId())
+            .orElseThrow { NoSuchElementException("회원 정보를 찾을 수 없습니다.") }
+
+        member.nickname = newNickname
+        memberRepository.save(member)
+        return ResponseEntity.ok(mapOf("message" to "nickname 수정 success"))
     }
 
 

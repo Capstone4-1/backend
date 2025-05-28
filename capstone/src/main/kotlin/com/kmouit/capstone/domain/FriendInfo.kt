@@ -17,11 +17,11 @@ class FriendInfo(
 data class FriendInfoId(
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "send_member_id")
-    val sendMember:Member, //보낸 사람
+    var sendMember:Member, //보낸 사람
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "receive_member_id")
-    val receiveMember:Member  // 받는 사람
+    var receiveMember:Member  // 받는 사람
 ): Serializable
 
 enum class FriendStatus{
