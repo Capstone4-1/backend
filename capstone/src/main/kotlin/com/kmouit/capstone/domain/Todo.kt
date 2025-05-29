@@ -3,7 +3,9 @@ package com.kmouit.capstone.domain
 import com.kmouit.capstone.CheckListItemStatus
 import jakarta.persistence.*
 
-class CheckListItem(
+
+@Entity
+class Todo(
 
     @Id  @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id : Long? = null,
@@ -16,4 +18,16 @@ class CheckListItem(
     @Enumerated(EnumType.STRING)
     val status : CheckListItemStatus
 ) {
+}
+
+data class TodoDto(
+    val id: Long,
+    val content: String,
+    val status: CheckListItemStatus,
+) {
+    constructor(todo: Todo) : this(
+        id = todo.id ?: -1L,
+        content = todo.content ?: "",
+        status = todo.status,
+    )
 }

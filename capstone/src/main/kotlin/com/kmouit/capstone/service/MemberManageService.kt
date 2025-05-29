@@ -4,10 +4,13 @@ import com.kmouit.capstone.DEFAULT_PROFILE_IMAGE_URL
 import com.kmouit.capstone.MAX_FILE_SIZE
 import com.kmouit.capstone.Role.*
 import com.kmouit.capstone.domain.Member
+import com.kmouit.capstone.domain.Todo
+import com.kmouit.capstone.domain.TodoDto
 import com.kmouit.capstone.dtos.JoinForm
 import com.kmouit.capstone.dtos.NoticeDto
 import com.kmouit.capstone.exception.DuplicateUsernameException
 import com.kmouit.capstone.repository.MemberRepository
+import com.kmouit.capstone.repository.TodoRepository
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -20,6 +23,7 @@ class MemberManageService(
     private val passwordEncoder: BCryptPasswordEncoder,
     private val memberRepository: MemberRepository,
     private val uploadService: S3UploadService,
+    private val todoRepository: TodoRepository,
 ) {
 
     /**
@@ -42,7 +46,7 @@ class MemberManageService(
     fun deleteProfileImage(id: Long): String {
         val member =
             memberRepository.findById(id).orElseThrow { NoSuchElementException("존재하지 않는 회원 : deleteProfileImage") }
-            member.profileImageUrl = DEFAULT_PROFILE_IMAGE_URL
+        member.profileImageUrl = DEFAULT_PROFILE_IMAGE_URL
 
         return member.profileImageUrl!!
     }
@@ -83,7 +87,13 @@ class MemberManageService(
         memberRepository.save(member)
     }
 
-
-
+    /**
+     * todolist 가져오기
+     */
+    fun getTodo(id: Long): List<TodoDto> {
+        return todoRepository.findByMemberId(id)
+            .orEmpty()
+            .map { TodoDto(it) }
+    }
 
 }

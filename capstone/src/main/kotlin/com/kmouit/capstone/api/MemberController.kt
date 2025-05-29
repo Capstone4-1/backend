@@ -1,5 +1,6 @@
 package com.kmouit.capstone.api
 
+import com.kmouit.capstone.domain.TodoDto
 import com.kmouit.capstone.dtos.*
 import com.kmouit.capstone.jwt.CustomUserDetails
 import com.kmouit.capstone.repository.MemberRepository
@@ -50,6 +51,17 @@ class MemberController(
     ): ResponseEntity<Map<String, List<NoticeDto>>> {
         val dtoList = memberManageService.getNotice(userDetails.getId())
         return ResponseEntity.ok(mapOf("notices" to dtoList))
+    }
+
+    /**
+     * todolist 조회
+     */
+    @GetMapping("/my-todo")
+    fun responseGetTodo(
+        @AuthenticationPrincipal userDetails: CustomUserDetails
+    ): ResponseEntity<Map<String, List<TodoDto>>> {
+        val dtoList = memberManageService.getTodo(userDetails.getId())
+        return ResponseEntity.ok(mapOf("todos" to dtoList))
     }
 
     @PostMapping("/set-nickname")
