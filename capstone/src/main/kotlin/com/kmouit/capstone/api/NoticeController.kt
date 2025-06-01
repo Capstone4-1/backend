@@ -21,9 +21,11 @@ class NoticeController(
     @PostMapping("read/{id}")
     fun responseReadNotices(
         @PathVariable id: Long,
-    ): ResponseEntity<String> {
+    ): ResponseEntity<Map<String, String>> {
         noticeService.readNotice(id)
-        return ResponseEntity.ok().body("알림읽음 seccess")
+        return ResponseEntity.ok().body(
+            mapOf("message" to "알림 읽음 성공")
+        )
     }
 
 
@@ -33,9 +35,11 @@ class NoticeController(
     @PostMapping("read-all")
     fun responseReadAllNotices(
         @RequestBody request : ReadAllNoticeRequest
-    ): ResponseEntity<String> {
+    ): ResponseEntity<Map<String, String>> {
         noticeService.readAllNotice(request.noticeIds)
-        return ResponseEntity.ok().body("알림 모두 읽음 seccess")
+        return ResponseEntity.ok().body(
+            mapOf("message" to "알림 모두 읽음 성공")
+        )
     }
 
 }

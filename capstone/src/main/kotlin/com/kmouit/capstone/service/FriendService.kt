@@ -30,7 +30,6 @@ class FriendService(
         val receivedMember = memberRepository.findById(receiveId).orElseThrow()
         val friendInfo = friendInfoRepository.findById(FriendInfoId(sendMember, receivedMember)).orElseThrow { IllegalStateException("친구요청 거절 실패") }
         friendInfoRepository.delete(friendInfo)
-        noticeService.createNotice(sendMember, "${receivedMember.name}님이 친구요청을 거절하셨습니다!")
     }
 
 
@@ -50,7 +49,6 @@ class FriendService(
             //반대방향도 추가
             addOppositeFriendInfo(sendMember, receivedMember)
             friendInfo.status = FriendStatus.ACCEPTED
-            noticeService.createNotice(sendMember, "${receivedMember.name}님이 친구요청을 수락하셨습니다!")
         } catch (e: NoSuchElementException) {
             throw NoSuchElementException("존재하지 않는 회원입니다")
         } catch (e: Exception) {
@@ -104,7 +102,6 @@ class FriendService(
             status = FriendStatus.SENDING
         )
         friendInfoRepository.save(newFriendInfo)
-        noticeService.createNotice(receiver, "${sender.name}님이 친구 요청을 보냈습니다!")
     }
 
     fun deleteFriend() {

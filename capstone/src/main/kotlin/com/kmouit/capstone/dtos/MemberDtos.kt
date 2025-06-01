@@ -65,13 +65,15 @@ data class MeDto(
 
 data class NoticeDto(
     var id : Long,
-    var content : String,
-    var date: LocalDateTime
+    var content : String?,
+    var date: LocalDateTime,
+    var targetUrl : String?,
 ){
     constructor(notice: Notice) : this(
         id = notice.id!!,
-        content = notice.content!!,
+        content = notice.content,
         date = notice.date!!,
+        targetUrl = notice.targetUrl
     )
 }
 

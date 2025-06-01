@@ -27,19 +27,30 @@ enum class BoardType(val value: String) {
     NOTICE("NOTICE"),
     POPULAR("POPULAR"),
     MARKET("MARKET"),
-    SECRET("SECRET");
+    SECRET("SECRET"),
+    NOTICE_C("NOTICE_C"),
+
+    LECTURE_Q("LECTURE_Q"),
+    LECTURE_NOTICE("LECTURE_NOTICE"),
+    LECTURE_REF("LECTURE_REF");
+
+
     companion object {
         fun from(value: String): BoardType? =
             entries.find { it.value == value.uppercase() }
     }
 }
 
-enum class CheckListItemStatus(val value: String) {
+enum class NoticeType(val value : String?){
+    NEW_COMMENT("NEW_COMMENT"),
+}
+
+enum class TodoItemStatus(val value: String) {
     DONE("DONE"),
     PENDING("PENDING");
 
     companion object {
-        fun from(value: String): CheckListItemStatus? =
-            CheckListItemStatus.entries.find { it.value == value.uppercase() }
+        fun from(value: String): TodoItemStatus? =
+            TodoItemStatus.entries.find { it.value == value.uppercase() }
     }
 }

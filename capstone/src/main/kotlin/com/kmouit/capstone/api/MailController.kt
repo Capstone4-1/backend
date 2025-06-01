@@ -86,7 +86,7 @@ class MailController(
         mailService.sendMessage(roomId, user.member.id!!, request.partnerId, request.content)
         return ResponseEntity.ok(
             mapOf(
-                "message" to "메일 보내기 성공 : ${request.content}"
+                "message" to "메일 보내기 성공"
             )
         )
     }
@@ -98,17 +98,26 @@ class MailController(
      * 메일 개수 체크
      */
     @GetMapping("/check-new")
-    fun checkMail(@AuthenticationPrincipal userDetails: CustomUserDetails): ResponseEntity<Map<String, Int>> {
+    fun checkMail(@AuthenticationPrincipal userDetails: CustomUserDetails): ResponseEntity<Map<String, Any>> {
         val newMailCount = mailService.countNewMail(userDetails.member.id!!)
-        return ResponseEntity.ok(mapOf("newMailCount" to newMailCount))
+        return ResponseEntity.ok(
+            mapOf(
+                "newMailCount" to newMailCount,
+                "message" to "메일 보내기 성공"
+            )
+        )
     }
 
     @PutMapping("/read-room/{roomId}")
     fun readAllMailsInRoom(
         @PathVariable roomId: Long,
-        @AuthenticationPrincipal userDetails: CustomUserDetails
-    ): ResponseEntity<String> {
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+    ): ResponseEntity<Map<String, String>> {
         mailService.markAllAsRead(roomId, userDetails.member.id!!)
-        return ResponseEntity.ok("읽음 처리 완료")
+        return ResponseEntity.ok(
+            mapOf(
+                "message" to "읽음 처리 성공"
+            )
+        )
     }
 }

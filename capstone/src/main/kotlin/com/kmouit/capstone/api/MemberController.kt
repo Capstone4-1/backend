@@ -1,9 +1,12 @@
 package com.kmouit.capstone.api
 
+import com.kmouit.capstone.TodoItemStatus
+import com.kmouit.capstone.domain.Todo
 import com.kmouit.capstone.domain.TodoDto
 import com.kmouit.capstone.dtos.*
 import com.kmouit.capstone.jwt.CustomUserDetails
 import com.kmouit.capstone.repository.MemberRepository
+import com.kmouit.capstone.repository.TodoRepository
 import com.kmouit.capstone.service.MemberManageService
 import com.kmouit.capstone.service.S3UploadService
 import org.springframework.http.HttpStatus
@@ -19,16 +22,22 @@ import org.springframework.web.multipart.MultipartFile
 class MemberController(
     private val memberRepository: MemberRepository,
     private val memberManageService: MemberManageService,
-    private val s3Service: S3UploadService,
+    private val todoRepository: TodoRepository,
 ) {
 
     /**
      *  새로고침시 정보 불러오기
      */
     @GetMapping("/me")
-    fun responseMe(@AuthenticationPrincipal userDetails: CustomUserDetails): ResponseEntity<MeDto> {
+    fun responseMe(@AuthenticationPrincipal userDetails: CustomUserDetails): ResponseEntity<Map<String, Any>> {
         val member = userDetails.member
-        return ResponseEntity.ok().body(MeDto(member))
+        val meDto = MeDto(member)
+        return ResponseEntity.ok(
+            mapOf(
+                "meDto" to meDto,
+                "message" to "me 조회 성공"
+            )
+        )
     }
 
 
@@ -47,40 +56,116 @@ class MemberController(
      */
     @GetMapping("/my-notices")
     fun responseGetMyNotices(
-        @AuthenticationPrincipal userDetails: CustomUserDetails
-    ): ResponseEntity<Map<String, List<NoticeDto>>> {
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+    ): ResponseEntity<Map<String, Any>> {
         val dtoList = memberManageService.getNotice(userDetails.getId())
-        return ResponseEntity.ok(mapOf("notices" to dtoList))
+        return ResponseEntity.ok(
+            mapOf(
+                "notices" to dtoList,
+                "message" to "알림 조회 성공"
+            )
+        )
     }
 
     /**
      * todolist 조회
      */
-    @GetMapping("/my-todo")
+    @GetMapping("/todo/my")
     fun responseGetTodo(
-        @AuthenticationPrincipal userDetails: CustomUserDetails
-    ): ResponseEntity<Map<String, List<TodoDto>>> {
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+    ): ResponseEntity<Map<String, Any>> {
         val dtoList = memberManageService.getTodo(userDetails.getId())
-        return ResponseEntity.ok(mapOf("todos" to dtoList))
+        return ResponseEntity.ok(
+            mapOf(
+                "todos" to dtoList,
+                "message" to "Todos 조회 성공"
+            )
+        )
     }
+
+    /**
+     * TodoItem 추가 하기
+     */
+    @PostMapping("/todo/add")
+    fun addTodo(
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+        @RequestBody dto: TodoDto,
+    ): ResponseEntity<Map<String, Any>> {
+        val member = userDetails.member
+        val todo = Todo(
+            content = dto.content,
+            member = member,
+            status = dto.status,
+            dueDate = dto.dueDate
+        )
+        val saved = todoRepository.save(todo)
+
+        return ResponseEntity.ok(
+            mapOf(
+                "message" to "Todo 추가 성공",
+                "savedTodo" to saved
+            )
+        )
+
+    }
+
+    /**
+     * todolist 체크
+     */
+    @PostMapping("/todo/{id}/status")
+    fun updateStatus(
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+        @PathVariable id: Long,
+        @RequestBody body: Map<String, String>,
+    ): ResponseEntity<Map<String, String>> {
+        val todo = todoRepository.findById(id).orElseThrow {
+            IllegalArgumentException("해당 ID의 투두 항목이 존재하지 않습니다.")
+        }
+        if (todo.member?.id != userDetails.member.id) {
+            return ResponseEntity.status(403).body(mapOf("message" to "권한이 없습니다."))
+        }
+
+        val newStatus = try {
+            TodoItemStatus.valueOf(body["status"] ?: "")
+        } catch (e: IllegalArgumentException) {
+            return ResponseEntity.badRequest().body(mapOf("message" to "유효하지 않은 상태입니다."))
+        }
+
+        todo.status = newStatus
+        todoRepository.save(todo)
+
+        return ResponseEntity.ok(mapOf("message" to "Todo 상태 변경 성공"))
+    }
+
+
+    @DeleteMapping("/todo/{id}")
+    fun deleteTodo(
+        @PathVariable id: Long,
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+    ): ResponseEntity<Map<String, String>> {
+        memberManageService.deleteTodo(id, userDetails.getId())
+        return ResponseEntity.ok(mapOf("message" to "Todo 삭제 성공"))
+
+    }
+
 
     @PostMapping("/set-nickname")
     fun responseSetNickname(
         @AuthenticationPrincipal userDetails: CustomUserDetails,
-        @RequestBody payload: Map<String, String>
+        @RequestBody payload: Map<String, String>,
     ): ResponseEntity<Map<String, String>> {
         val newNickname = payload["nickname"]
             ?: return ResponseEntity.badRequest().body(mapOf("message" to "nickname 누락"))
         if (memberRepository.existsByNickname(newNickname)) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(mapOf("message" to "중복된 닉네임입니다."))
+                .body(mapOf("message" to "중복된 닉네임 입니다."))
         }
         val member = memberRepository.findById(userDetails.getId())
             .orElseThrow { NoSuchElementException("회원 정보를 찾을 수 없습니다.") }
 
         member.nickname = newNickname
         memberRepository.save(member)
-        return ResponseEntity.ok(mapOf("message" to "nickname 수정 success"))
+        return ResponseEntity.ok(mapOf("message" to "별명 수정 성공"))
     }
 
 
@@ -89,10 +174,10 @@ class MemberController(
         @AuthenticationPrincipal userDetails: CustomUserDetails,
         @RequestBody request: IntroRequest,
 
-    ): ResponseEntity<Map<String, String>> {
+        ): ResponseEntity<Map<String, String>> {
         memberManageService.setIntro(userDetails.getId(), request.intro)
         return ResponseEntity.ok(
-            mapOf("message" to "intro 수정 success")
+            mapOf("message" to "Intro 수정 성공")
         )
     }
 
@@ -104,7 +189,7 @@ class MemberController(
         val profileImageUrl = memberManageService.setProfileImage(userDetails.getId(), profileImage)
         return ResponseEntity.ok(
             mapOf(
-                "message" to "프로필 이미지가 성공적으로 수정되었습니다.",
+                "message" to "Profile img 수정 성공",
                 "imageUrl" to profileImageUrl
             )
         )
@@ -112,12 +197,12 @@ class MemberController(
 
     @DeleteMapping("/delete-profile-image")
     fun deleteProfileImage(
-        @AuthenticationPrincipal userDetails: CustomUserDetails
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
     ): ResponseEntity<Map<String, Any>> {
         val defaultImageUrl = memberManageService.deleteProfileImage(userDetails.getId())
         return ResponseEntity.ok(
             mapOf(
-                "message" to "프로필 이미지가 삭제되었습니다.",
+                "message" to "Profile img 삭제 성공",
                 "imageUrl" to defaultImageUrl  // ✅ 기본 이미지 URL을 응답에 포함
             )
         )
@@ -127,7 +212,7 @@ class MemberController(
     fun join(@RequestBody joinForm: JoinForm): ResponseEntity<Map<String, String>> {
         memberManageService.join(joinForm)
         return ResponseEntity.ok().body(
-            mapOf("message" to "회원 가입 success")
+            mapOf("message" to "회원 가입 성공")
         )
     }
 

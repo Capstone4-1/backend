@@ -1,7 +1,8 @@
 package com.kmouit.capstone.domain
 
-import com.kmouit.capstone.CheckListItemStatus
+import com.kmouit.capstone.TodoItemStatus
 import jakarta.persistence.*
+import java.time.LocalDate
 
 
 @Entity
@@ -15,19 +16,23 @@ class Todo(
     @JoinColumn(name = "member_id")
     var member: Member? = null,
 
+    var dueDate: LocalDate? = null,
+
     @Enumerated(EnumType.STRING)
-    val status : CheckListItemStatus
+    var status : TodoItemStatus
 ) {
 }
 
 data class TodoDto(
     val id: Long,
     val content: String,
-    val status: CheckListItemStatus,
+    val status: TodoItemStatus,
+    val dueDate: LocalDate?,
 ) {
     constructor(todo: Todo) : this(
         id = todo.id ?: -1L,
         content = todo.content ?: "",
         status = todo.status,
+        dueDate = todo.dueDate!!
     )
 }

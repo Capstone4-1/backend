@@ -38,11 +38,12 @@ class FriendController(
     fun addFriend(
         @AuthenticationPrincipal userDetails: CustomUserDetails,
         @RequestBody body: Map<String, String>,
-    ): ResponseEntity<String> {
+    ): ResponseEntity<out Any> {
         val myId = userDetails.getId()
         val studentId = body["studentId"] ?: return ResponseEntity.badRequest().body("studentId 누락됨")
         friendService.addFriend(myId, studentId)
-        return ResponseEntity.ok("친구 요청 success")
+        return ResponseEntity.ok(mapOf("message" to "친구 요청 성공"))
+
     }
 
     /**
@@ -56,7 +57,7 @@ class FriendController(
         val myId = userDetails.getId()
         val idToDecline = declineFriendRequestDto.idToDecline
         friendService.declineFriendRequest(myId, idToDecline)
-        return ResponseEntity.ok(mapOf("message" to "친구 요청 거절 success"))
+        return ResponseEntity.ok(mapOf("message" to "친구 요청 거절 "))
     }
 
 
@@ -71,7 +72,7 @@ class FriendController(
         val myId = userDetails.getId()
         val idToAccept = acceptFriendRequestDto.idToAccept
         friendService.acceptFriendRequest(myId, idToAccept)
-        return ResponseEntity.ok(mapOf("message" to "친구 요청 수락 success"))
+        return ResponseEntity.ok(mapOf("message" to "친구 요청 수락 성공"))
     }
 
 
@@ -87,7 +88,7 @@ class FriendController(
         return ResponseEntity.ok(
             mapOf(
                 "requestMemberList" to requestMemberDtoList,
-                "message" to "친구 요청 목록 조회 success"
+                "message" to "친구 요청 목록 조회 성공"
             )
         )
     }

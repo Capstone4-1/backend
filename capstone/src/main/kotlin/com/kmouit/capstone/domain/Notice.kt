@@ -1,6 +1,7 @@
 package com.kmouit.capstone.domain
 
 import com.kmouit.capstone.NoticeInfoStatus
+import com.kmouit.capstone.NoticeType
 import jakarta.persistence.*
 import java.time.LocalDateTime
 
@@ -16,5 +17,11 @@ class Notice (
     var date : LocalDateTime? = null,
 
     @Enumerated(EnumType.STRING)
-    var status : NoticeInfoStatus = NoticeInfoStatus.UNREAD
+    var status : NoticeInfoStatus = NoticeInfoStatus.UNREAD,
+
+
+    var targetUrl: String? = null,
+
+    @Enumerated(EnumType.STRING)
+    var noticeType : NoticeType? = null
 )

@@ -1,8 +1,10 @@
 package com.kmouit.capstone.service
 
 import com.kmouit.capstone.NoticeInfoStatus.READ
+import com.kmouit.capstone.NoticeType.NEW_COMMENT
 import com.kmouit.capstone.domain.Member
 import com.kmouit.capstone.domain.Notice
+import com.kmouit.capstone.domain.Posts
 import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.repository.NoticeRepository
 import org.springframework.stereotype.Service
@@ -21,14 +23,21 @@ class NoticeService(
      * (알림 받을사람, 내용)
      */
     @Transactional
-    fun createNotice(member: Member, content: String) {
+    fun createCommentNotice(post: Posts, member: Member) {
+        val boardType = post.boardType!!.name.lowercase() // FREE → "free"
+        val postUrl = "/main/community/$boardType/post/${post.id}"
+
         val notice = Notice().apply {
             this.date = LocalDateTime.now()
-            this.content = content
+            this.content = "'${post.title}' 게시글에 ${member.nickname}님이 댓글을 남겼습니다"
+            this.noticeType = NEW_COMMENT
+            this.targetUrl = postUrl
+            this.member = post.member
         }
-        member.addNotice(notice)
-        noticeRepository.save(notice)
+        post.member!!.addNotice(notice)
+
     }
+
 
 
     @Transactional

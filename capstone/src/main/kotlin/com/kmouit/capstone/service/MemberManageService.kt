@@ -96,4 +96,16 @@ class MemberManageService(
             .map { TodoDto(it) }
     }
 
+    @Transactional
+    fun deleteTodo(todoId: Long, memberId: Long) {
+        val todo = todoRepository.findById(todoId).orElseThrow {
+            IllegalArgumentException("해당 Todo가 존재하지 않습니다.")
+        }
+
+        if (todo.member?.id != memberId) {
+            throw IllegalAccessException("권한이 없습니다.")
+        }
+        todoRepository.delete(todo)
+    }
+
 }

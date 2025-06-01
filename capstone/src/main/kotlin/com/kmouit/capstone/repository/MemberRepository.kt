@@ -4,6 +4,7 @@ import com.kmouit.capstone.domain.Member
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.util.*
 
@@ -21,5 +22,9 @@ interface MemberRepository : JpaRepository<Member, Long> , JpaSpecificationExecu
     )
     fun findMemberAndUnreadNoticesById(id: Long): Member?
     fun existsByNickname(nickname: String): Boolean
+
+
+    @Query("SELECT m FROM Member m LEFT JOIN FETCH m.notices WHERE m.id = :id")
+    fun findMemberAndNoticesById(@Param("id") id: Long): Member?
 
 }
