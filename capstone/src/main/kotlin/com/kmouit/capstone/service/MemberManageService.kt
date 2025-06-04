@@ -18,7 +18,7 @@ import org.springframework.web.multipart.MultipartFile
 
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 class MemberManageService(
     private val passwordEncoder: BCryptPasswordEncoder,
     private val memberRepository: MemberRepository,
@@ -43,6 +43,7 @@ class MemberManageService(
         return imageUrl
     }
 
+    @Transactional
     fun deleteProfileImage(id: Long): String {
         val member =
             memberRepository.findById(id).orElseThrow { NoSuchElementException("존재하지 않는 회원 : deleteProfileImage") }
@@ -54,6 +55,7 @@ class MemberManageService(
     /**
      * 자기 소개 설정
      */
+    @Transactional
     fun setIntro(id: Long, intro: String) {
         val member = memberRepository.findById(id).orElseThrow { NoSuchElementException("존재하지 않는 회원") }
         member.intro = intro
@@ -70,6 +72,7 @@ class MemberManageService(
     }
 
 
+    @Transactional
     fun join(joinForm: JoinForm) {
         if (memberRepository.findByUsername(joinForm.username) != null) {
             throw DuplicateUsernameException("이미 가입된 id 입니다")
@@ -80,7 +83,8 @@ class MemberManageService(
             name = joinForm.name,
             email = joinForm.email,
             nickname = joinForm.name,
-            profileImageUrl = DEFAULT_PROFILE_IMAGE_URL
+            profileImageUrl = DEFAULT_PROFILE_IMAGE_URL,
+            intro = "${joinForm.name}입니다. 잘 부탁드립니다."
         )
         member.roles.add(USER)
         member.roles.add(STUDENT)

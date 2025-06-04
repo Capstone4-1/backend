@@ -28,6 +28,7 @@ enum class BoardType(val value: String) {
     POPULAR("POPULAR"),
     MARKET("MARKET"),
     SECRET("SECRET"),
+    REVIEW("REVIEW"),
     NOTICE_C("NOTICE_C"),
 
     LECTURE_Q("LECTURE_Q"),

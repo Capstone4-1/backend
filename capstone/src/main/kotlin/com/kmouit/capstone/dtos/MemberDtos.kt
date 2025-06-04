@@ -10,26 +10,27 @@ import java.time.LocalDateTime
 
 data class LoginForm @JsonCreator constructor(
     @JsonProperty("username") val username: String,
-    @JsonProperty("password") val password: String
+    @JsonProperty("password") val password: String,
 )
+
 data class JoinForm(
     @NotEmpty
     var username: String,
     @NotEmpty
     var password: String,
     @NotEmpty
-    var name :String,
+    var name: String,
     @NotEmpty
-    var email :String,
+    var email: String,
 )
 
 data class MemberSimpleDto(
-    var id :Long,
-    var name :String,
-    var username :String,
+    var id: Long,
+    var name: String,
+    var username: String,
     var profileImageUrl: String?,
-    val intro :String?
-){
+    val intro: String?,
+) {
     constructor(member: Member) : this(
         id = member.id!!,
         username = member.username!!,
@@ -40,15 +41,15 @@ data class MemberSimpleDto(
 }
 
 data class MeDto(
-    var id:Long,
-    var username:String,
-    var name:String,
+    var id: Long,
+    var username: String,
+    var name: String,
     var email: String,
-    var nickname:String,
+    var nickname: String,
     var roles: List<String>,
     var intro: String? = null,
-    var profileImageUrl : String? = null
-){
+    var profileImageUrl: String? = null,
+) {
     constructor(member: Member) : this(
         id = member.id!!,
         username = member.username!!,
@@ -62,13 +63,12 @@ data class MeDto(
 }
 
 
-
 data class NoticeDto(
-    var id : Long,
-    var content : String?,
+    var id: Long,
+    var content: String?,
     var date: LocalDateTime,
-    var targetUrl : String?,
-){
+    var targetUrl: String?,
+) {
     constructor(notice: Notice) : this(
         id = notice.id!!,
         content = notice.content,
@@ -78,14 +78,15 @@ data class NoticeDto(
 }
 
 data class MemberDto(
-    var id:Long,
-    var username:String,
-    var name:String,
+    var id: Long,
+    var username: String,
+    var name: String,
     var email: String,
-    var nickname:String,
+    var nickname: String,
     var roles: List<String>,
-    var intro: String? = null
-){
+    var intro: String? = null,
+    var profileImageUrl: String? = null,
+) {
     constructor(member: Member) : this(
         id = member.id!!,
         username = member.username!!,
@@ -93,9 +94,12 @@ data class MemberDto(
         email = member.email!!,
         nickname = member.nickname!!,
         roles = member.roles.map { it.name },
-        intro = member.intro)
+        intro = member.intro,
+        profileImageUrl = member.profileImageUrl
+    )
 }
 
+
 data class IntroRequest(
-    val intro: String
+    val intro: String,
 )

@@ -51,6 +51,17 @@ class MemberController(
         return ResponseEntity.ok().body(MemberDto(member))
     }
 
+
+    /**
+     *  모달용 유저 정보 조회
+     */
+    @GetMapping("/summary/{userId}")
+    fun getMemberInfo(@PathVariable userId: Long): ResponseEntity<MemberDto> {
+        val member = memberRepository.findById(userId).orElseThrow { NoSuchElementException("대상 회원이 존재하지 않습니다") }
+        return ResponseEntity.ok(MemberDto(member))
+    }
+
+
     /**
      *  온 알림 조회
      */
