@@ -1,15 +1,14 @@
 package com.kmouit.capstone.service
 
 import com.kmouit.capstone.BoardType
-import com.kmouit.capstone.BoardType.SECRET
 import com.kmouit.capstone.api.CommentRequestDto
 import com.kmouit.capstone.api.CrawledNoticeDto
 import com.kmouit.capstone.api.PostRequestDto
 import com.kmouit.capstone.domain.*
-import com.kmouit.capstone.jwt.CustomUserDetails
 import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.repository.PostRepository
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -86,19 +85,31 @@ class PostService(
         }
     }
 
-    fun findPostDtoByBoardType(boardType: String, pageable: Pageable): Page<SimplePostDto> {
-        val postPage = postRepository.findAllByBoardTypeOrderByCreatedDateDesc(
-            BoardType.from(boardType)!!, pageable
-        )
-        return postPage.map { it.toSimpleDto() }
-    }
+
 
     @Transactional
     fun getPostDetail(id: Long, currentUserId: Long?): PostDto {
-        val post = postRepository.findById(id)
-            .orElseThrow { NoSuchElementException("게시글 없음") }
+        val post = postRepository.findPostWithDetails(id)
+            ?: throw NoSuchElementException("게시글 없음")
+
         post.viewCount += 1
         return post.toDto(currentUserId)
+    }
+
+    fun getSummary(boardType: BoardType?, id: Long): List<SimplePostDto> {
+        if (boardType == null) throw IllegalArgumentException("게시판 타입이 null입니다.")
+
+        val pageable = PageRequest.of(0, 3)
+        val posts = postRepository.findTopByBoardTypeWithMember(boardType, pageable)
+
+        return posts.map { it.toSimpleDto(id) }
+    }
+
+    fun findPostDtoByBoardType(boardType: String, pageable: Pageable): Page<SimplePostDto> {
+        val postPage = postRepository.findAllByBoardTypeWithMember(
+            BoardType.from(boardType)!!, pageable
+        )
+        return postPage.map { it.toSimpleDto(0)} //수정
     }
 
 

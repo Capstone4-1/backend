@@ -1,5 +1,6 @@
 package com.kmouit.capstone.api
 
+import com.kmouit.capstone.BoardType
 import com.kmouit.capstone.domain.PostDto
 import com.kmouit.capstone.domain.SimplePostDto
 import com.kmouit.capstone.jwt.CustomUserDetails
@@ -83,8 +84,23 @@ class PostController(
     ): ResponseEntity<PostDto> {
         val dto = postService.getPostDetail(id, userDetails.getId())
         return ResponseEntity.ok(dto)
-
     }
+
+    @GetMapping("/summary-multiple")
+    fun getMultipleBoardSummaries(
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+    ): ResponseEntity<Map<String, Any>> {
+        val result = mapOf(
+            "message" to "게시판 전체 요약 정보 조회 성공",
+            "Posts_notice_c" to postService.getSummary(BoardType.from("NOTICE_C"), userDetails.getId()),
+            "Posts_free" to postService.getSummary(BoardType.from("FREE"), userDetails.getId()),
+            "Posts_secret" to postService.getSummary(BoardType.from("SECRET"), userDetails.getId()),
+            "Posts_review" to postService.getSummary(BoardType.from("REVIEW"), userDetails.getId()),
+            "Posts_market" to postService.getSummary(BoardType.from("MARKET"), userDetails.getId())
+        )
+        return ResponseEntity.ok(result)
+    }
+
 }
 
 data class PostPageResponseDto(

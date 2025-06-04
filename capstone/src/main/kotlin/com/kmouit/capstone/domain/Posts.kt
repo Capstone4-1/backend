@@ -78,9 +78,10 @@ data class SimplePostDto(
     val writerNickname: String,
     val price : Int?,
     val imageUrls: String?,
-    val viewCount: Int
+    val viewCount: Int,
+    val isAuthor: Boolean
 )
-fun Posts.toSimpleDto(): SimplePostDto {
+fun Posts.toSimpleDto(currentUserId: Long?): SimplePostDto {
     return SimplePostDto(
         id = this.id!!,
         title = this.title!!,
@@ -91,6 +92,7 @@ fun Posts.toSimpleDto(): SimplePostDto {
         writerNickname = this.member?.nickname!!,
         price = this.price,
         imageUrls = this.imageUrls,
-        viewCount = this.viewCount
+        viewCount = this.viewCount,
+        isAuthor = (currentUserId != null && currentUserId == this.member?.id)
     )
 }
