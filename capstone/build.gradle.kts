@@ -34,7 +34,7 @@ dependencies {
 	implementation("io.awspring.cloud:spring-cloud-aws-starter-s3:3.1.1")
 	implementation("io.awspring.cloud:spring-cloud-aws-dependencies:3.1.1")
 	implementation("mysql:mysql-connector-java:8.0.33")
-
+	implementation("net.coobird:thumbnailator:0.4.19")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	runtimeOnly("com.h2database:h2")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")

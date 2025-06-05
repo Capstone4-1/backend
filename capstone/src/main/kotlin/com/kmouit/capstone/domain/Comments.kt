@@ -32,6 +32,7 @@ data class CommentDto(
     var writerId: Long,
     var writerNickname: String,
     var writerProfileImageUrl: String?,
+    val writerProfileThumbnails: String?,
     var createdDate: LocalDateTime,
     var likeCount: Int,
     var isAuthor: Boolean
@@ -43,6 +44,7 @@ fun Comments.toDto(currentUserId: Long?): CommentDto {
         writerId = this.member?.id ?: -1,
         writerNickname = this.member?.nickname ?: "탈퇴회원",
         writerProfileImageUrl = this.member?.profileImageUrl,
+        writerProfileThumbnails = this.member?.thumbnailUrl,
         createdDate = this.createdDate ?: LocalDateTime.now(),
         likeCount = this.likeCount,
         isAuthor = (currentUserId != null && currentUserId == this.member?.id)

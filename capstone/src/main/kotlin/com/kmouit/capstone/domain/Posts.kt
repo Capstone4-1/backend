@@ -2,6 +2,7 @@ package com.kmouit.capstone.domain
 
 import com.kmouit.capstone.BoardType
 import jakarta.persistence.*
+import net.coobird.thumbnailator.Thumbnails
 import java.time.LocalDateTime
 
 @Entity
@@ -29,7 +30,9 @@ class Posts(
 
     @Lob
     var imageUrls: String?= null,
+    var thumbnailUrl : String? = null,
     var price : Int? = null,
+    var targetUrl : String? = null
     )
 data class PostDto(
     val id: Long,
@@ -41,6 +44,7 @@ data class PostDto(
     val boardType: BoardType,
     val writerNickname: String,
     val writerProfileImageUrl: String?,
+    val writerProfileThumbnails: String?,
     val writerId: Long?,
     var imageUrls: String?= null,
     val comments: List<CommentDto>,
@@ -59,6 +63,7 @@ fun Posts.toDto(currentUserId: Long?): PostDto {
         boardType = this.boardType!!,
         writerNickname = this.member?.nickname ?: "탈퇴회원",
         writerProfileImageUrl = this.member?.profileImageUrl,
+        writerProfileThumbnails = this.member?.thumbnailUrl,
         writerId = this.member?.id,
         imageUrls = this.imageUrls,
         comments = this.comments.map { it.toDto(currentUserId) },
@@ -82,6 +87,9 @@ data class SimplePostDto(
     val isAuthor: Boolean
 )
 fun Posts.toSimpleDto(currentUserId: Long?): SimplePostDto {
+
+    val isSecretBoard = this.boardType == BoardType.SECRET
+
     return SimplePostDto(
         id = this.id!!,
         title = this.title!!,
@@ -89,7 +97,7 @@ fun Posts.toSimpleDto(currentUserId: Long?): SimplePostDto {
         commentCount = this.commentCount,
         likeCount = this.likeCount,
         boardType = this.boardType!!,
-        writerNickname = this.member?.nickname!!,
+        writerNickname = if (isSecretBoard) "익명" else this.member?.nickname ?: "탈퇴회원",
         price = this.price,
         imageUrls = this.imageUrls,
         viewCount = this.viewCount,

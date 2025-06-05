@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.kmouit.capstone.domain.Member
 import com.kmouit.capstone.domain.Notice
 import jakarta.validation.constraints.NotEmpty
+import net.coobird.thumbnailator.Thumbnails
 import java.time.LocalDateTime
 
 
@@ -49,6 +50,7 @@ data class MeDto(
     var roles: List<String>,
     var intro: String? = null,
     var profileImageUrl: String? = null,
+    var profileThumbnails: String? = null
 ) {
     constructor(member: Member) : this(
         id = member.id!!,
@@ -58,7 +60,8 @@ data class MeDto(
         nickname = member.nickname!!,
         roles = member.roles.map { it.name },
         intro = member.intro,
-        profileImageUrl = member.profileImageUrl
+        profileImageUrl = member.profileImageUrl,
+        profileThumbnails = member.thumbnailUrl
     )
 }
 

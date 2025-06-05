@@ -4,6 +4,7 @@ import com.kmouit.capstone.BoardType
 import com.kmouit.capstone.domain.PostDto
 import com.kmouit.capstone.domain.SimplePostDto
 import com.kmouit.capstone.jwt.CustomUserDetails
+import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.service.PostService
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -11,19 +12,14 @@ import org.springframework.data.domain.Pageable
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @PreAuthorize("permitAll()")
 @RestController
 @RequestMapping("api/post")
 class PostController(
     private val postService: PostService,
+    private val memberRepository: MemberRepository,
 ) {
 
     @PostMapping("/{postId}/comments")
@@ -57,6 +53,7 @@ class PostController(
         @RequestParam boardType: String,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") size: Int,
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
     ): ResponseEntity<Map<String, Any>> {
         val pageable: Pageable = PageRequest.of(page, size)
         val resultPage: Page<SimplePostDto> = postService.findPostDtoByBoardType(boardType, pageable)
@@ -67,11 +64,13 @@ class PostController(
             currentPage = resultPage.number,
             pageSize = resultPage.size
         )
+        val isMarked = postService.checkBoardMark(boardType, userDetails.getId())
 
         return ResponseEntity.ok(
             mapOf(
                 "message" to "페이지 정보 조회 성공",
-                "pageResponse" to response
+                "pageResponse" to response,
+                "isMarked" to isMarked
             )
         )
     }
@@ -101,7 +100,47 @@ class PostController(
         return ResponseEntity.ok(result)
     }
 
+
+    @GetMapping("/favorites")
+    fun getMyFavorites(
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+    ): ResponseEntity<Map<String, Any>> {
+        val result = postService.findMyFavorites(userDetails.getId())
+        return ResponseEntity.ok(
+            mapOf(
+                "message" to "my 즐겨찾기 조회 성공",
+                "favorites" to result
+            )
+        )
+    }
+
+    @PostMapping("/favorites")
+    fun responseSaveBoardMark(
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+        @RequestBody request: FavoriteRequest,
+    ): ResponseEntity<Map<String, String>> {
+        postService.saveBoardMarkInfo(userDetails.getId(), request.boardType, request.boardName!!)
+        return ResponseEntity.ok(
+            mapOf(
+                "message" to "my 즐겨찾기 추가 성공",
+            )
+        )
+    }
+
+    @DeleteMapping("/favorites")
+    fun responseDeleteBoardMark(
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+        @RequestParam boardType: String
+    ): ResponseEntity<Map<String, String>> {
+        postService.deleteBoardMarkInfo(userDetails.getId(), boardType)
+        return ResponseEntity.ok(mapOf("message" to "즐겨찾기 삭제 성공"))
+    }
 }
+
+data class FavoriteRequest(
+    val boardName: String?,
+    val boardType: String,
+)
 
 data class PostPageResponseDto(
     var posts: List<SimplePostDto>,

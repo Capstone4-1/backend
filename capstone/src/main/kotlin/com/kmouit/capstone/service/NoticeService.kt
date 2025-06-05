@@ -1,5 +1,6 @@
 package com.kmouit.capstone.service
 
+import com.kmouit.capstone.BoardType
 import com.kmouit.capstone.NoticeInfoStatus.READ
 import com.kmouit.capstone.NoticeType.NEW_COMMENT
 import com.kmouit.capstone.domain.Member
@@ -27,9 +28,13 @@ class NoticeService(
         val boardType = post.boardType!!.name.lowercase() // FREE → "free"
         val postUrl = "/main/community/$boardType/post/${post.id}"
 
+        var newNickName = member.nickname
+        if (post.boardType == BoardType.SECRET){
+            newNickName = "익명"
+        }
         val notice = Notice().apply {
             this.date = LocalDateTime.now()
-            this.content = "'${post.title}' 게시글에 ${member.nickname}님이 댓글을 남겼습니다"
+            this.content = "'${post.title}' 게시글에 '${newNickName}'님이 댓글을 남겼습니다"
             this.noticeType = NEW_COMMENT
             this.targetUrl = postUrl
             this.member = post.member

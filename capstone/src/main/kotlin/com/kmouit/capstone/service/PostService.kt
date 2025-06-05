@@ -5,6 +5,8 @@ import com.kmouit.capstone.api.CommentRequestDto
 import com.kmouit.capstone.api.CrawledNoticeDto
 import com.kmouit.capstone.api.PostRequestDto
 import com.kmouit.capstone.domain.*
+import com.kmouit.capstone.exception.DuplicateFavoriteException
+import com.kmouit.capstone.repository.BoardMarkInfoRepository
 import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.repository.PostRepository
 import org.springframework.data.domain.Page
@@ -13,6 +15,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.util.*
 import kotlin.NoSuchElementException
 import kotlin.jvm.optionals.getOrNull
 
@@ -23,6 +26,8 @@ class PostService(
     private val memberRepository: MemberRepository,
     private val postRepository: PostRepository,
     private val noticeService: NoticeService,
+    private val boardMarkInfoRepository: BoardMarkInfoRepository,
+    private val uploadService: S3UploadService
 ) {
     @Transactional
     fun createComment(requestDto: CommentRequestDto, postId: Long, userDetail: Member) {
@@ -42,7 +47,7 @@ class PostService(
 
         post.comments.add(comment)
 
-        if(post.member!!.id == member.id){
+        if (post.member!!.id == member.id) {
             return
         }
         noticeService.createCommentNotice(
@@ -54,6 +59,13 @@ class PostService(
     fun createPost(requestDto: PostRequestDto, member: Member) {
         val createBy = memberRepository.findById(member.id!!).getOrNull()
             ?: throw NoSuchElementException("멤버를 찾을 수 없습니다.")
+
+        val originalUrl = requestDto.imageUrls
+
+        var thumbnailUrl: String? = null
+        if (!originalUrl.isNullOrBlank()) {
+            thumbnailUrl = uploadService.generateThumbnailFromOriginalUrl(originalUrl)
+        }
         val newPost = Posts()
         newPost.createdDate = LocalDateTime.now()
         newPost.member = createBy
@@ -62,6 +74,7 @@ class PostService(
         newPost.content = requestDto.content
         newPost.imageUrls = requestDto.imageUrls
         newPost.price = requestDto.price
+        newPost.thumbnailUrl = thumbnailUrl
 
 
         postRepository.save(newPost)
@@ -73,6 +86,7 @@ class PostService(
             val newPost = Posts()
             newPost.member = member
             newPost.boardType = BoardType.NOTICE_C
+            newPost.targetUrl = crawledNoticeDto.url
             newPost.title = crawledNoticeDto.title
             newPost.content = crawledNoticeDto.content
             // LocalDate → LocalDateTime 변환
@@ -84,7 +98,6 @@ class PostService(
             postRepository.save(newPost)
         }
     }
-
 
 
     @Transactional
@@ -109,9 +122,59 @@ class PostService(
         val postPage = postRepository.findAllByBoardTypeWithMember(
             BoardType.from(boardType)!!, pageable
         )
-        return postPage.map { it.toSimpleDto(0)} //수정
+        return postPage.map { it.toSimpleDto(0) } //수정
     }
 
+
+    @Transactional
+    fun saveBoardMarkInfo(id: Long, boardType: String, boardName: String) {
+        val member = memberRepository.findById(id)
+            .orElseThrow { NoSuchElementException("존재하지 않는 회원") }
+
+        val boardTypeEnum = BoardType.from(boardType.uppercase(Locale.getDefault()))
+
+        val exists = boardMarkInfoRepository.existsByMemberAndBoardType(member, boardTypeEnum!!)
+        if (exists) {
+            throw DuplicateFavoriteException("이미 등록된 즐겨찾기입니다.")
+        }
+        val boardMarkInfo = BoardMarkInfo().apply {
+            this.member = member
+            this.boardType = boardTypeEnum
+            this.boardName = boardName
+            this.targetUrl = "/main/community/${boardType.lowercase()}" // 필요한 경우 자동 생성
+        }
+
+        boardMarkInfoRepository.save(boardMarkInfo)
+    }
+
+
+
+    fun findMyFavorites(memberId: Long): List<BoardMarkInfoDto> {
+        val member = memberRepository.findById(memberId)
+            .orElseThrow { NoSuchElementException("존재하지 않는 회원") }
+
+        return boardMarkInfoRepository.findAllByMemberIdWithFetch(member.id!!)
+            .map { it.toDto() }
+    }
+
+    @Transactional
+    fun deleteBoardMarkInfo(memberId: Long, boardType: String) {
+        val member = memberRepository.findById(memberId)
+            .orElseThrow { NoSuchElementException("존재하지 않는 회원") }
+
+        val boardTypeEnum = BoardType.from(boardType.uppercase(Locale.ENGLISH))
+
+        val boardMarkInfo = boardMarkInfoRepository
+            .findByMemberAndBoardType(member, boardTypeEnum!!)
+            ?: throw NoSuchElementException("해당 즐겨찾기를 찾을 수 없습니다.")
+
+        boardMarkInfoRepository.delete(boardMarkInfo)
+    }
+
+    fun checkBoardMark(boardType: String, id: Long): Boolean {
+        val member = memberRepository.findById(id).orElseThrow { NoSuchElementException("존재하지 않는 회원") }
+        return boardMarkInfoRepository.existsByMemberAndBoardType(member, BoardType.from(boardType.uppercase(Locale.getDefault()))!!)
+    }
 
 }
 

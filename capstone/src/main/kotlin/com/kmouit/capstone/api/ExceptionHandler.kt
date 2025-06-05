@@ -1,6 +1,7 @@
 package com.kmouit.capstone.api
 
 import com.kmouit.capstone.dtos.ErrorResponse
+import com.kmouit.capstone.exception.CustomAccessDeniedException
 import com.kmouit.capstone.exception.DuplicateUsernameException
 import mu.KotlinLogging
 import org.springframework.http.HttpStatus
@@ -50,6 +51,13 @@ class ExceptionHandler {
         logger.warn { "채팅방 생성 중복: $e" }
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body(ErrorResponse(HttpStatus.CONFLICT.value(), e.message ?: "중복 에러"))
+    }
+
+    @ExceptionHandler(CustomAccessDeniedException::class)
+    fun handleAccessDenied(e: CustomAccessDeniedException): ResponseEntity<ErrorResponse> {
+        logger.warn { "잘못된 접근 (권한 없음): $e" }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(ErrorResponse(HttpStatus.FORBIDDEN.value(), e.message ?: "권한 에러"))
     }
 }
 

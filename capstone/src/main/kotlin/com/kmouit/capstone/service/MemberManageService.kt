@@ -1,6 +1,7 @@
 package com.kmouit.capstone.service
 
 import com.kmouit.capstone.DEFAULT_PROFILE_IMAGE_URL
+import com.kmouit.capstone.DEFAULT_PROFILE_THUMBNAIL_URL
 import com.kmouit.capstone.MAX_FILE_SIZE
 import com.kmouit.capstone.Role.*
 import com.kmouit.capstone.domain.Member
@@ -38,9 +39,11 @@ class MemberManageService(
         }
         val member =
             memberRepository.findById(id).orElseThrow { NoSuchElementException("존재하지 않는 회원 : setProfileImage") }
-        val imageUrl = uploadService.uploadProfileImage(file)
-        member.profileImageUrl = imageUrl
-        return imageUrl
+
+        val (originalUrl, thumbnailUrl) = uploadService.uploadWithThumbnail(file)
+        member.profileImageUrl = originalUrl  // 혹은 originalUrl, 원하는 쪽 선택
+        member.thumbnailUrl = thumbnailUrl
+        return originalUrl  // 또는 originalUrl
     }
 
     @Transactional
@@ -84,6 +87,7 @@ class MemberManageService(
             email = joinForm.email,
             nickname = joinForm.name,
             profileImageUrl = DEFAULT_PROFILE_IMAGE_URL,
+            thumbnailUrl = DEFAULT_PROFILE_THUMBNAIL_URL,
             intro = "${joinForm.name}입니다. 잘 부탁드립니다."
         )
         member.roles.add(USER)

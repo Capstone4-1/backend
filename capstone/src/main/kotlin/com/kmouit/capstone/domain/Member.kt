@@ -31,6 +31,7 @@ class Member(
     var nickname: String? = null,
 
     var profileImageUrl: String? =null,
+    var thumbnailUrl: String? = null,
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
         name = "member_roles",
