@@ -83,21 +83,41 @@ class PostService(
     @Transactional
     fun saveCrawledNotices(noticeList: List<CrawledNoticeDto>, member: Member) {
         for (crawledNoticeDto in noticeList) {
-            val newPost = Posts()
-            newPost.member = member
-            newPost.boardType = BoardType.NOTICE_C
-            newPost.targetUrl = crawledNoticeDto.url
-            newPost.title = crawledNoticeDto.title
-            newPost.content = crawledNoticeDto.content
-            // LocalDate → LocalDateTime 변환
-            newPost.createdDate = crawledNoticeDto.date.atStartOfDay()
-            if (crawledNoticeDto.img.isNotEmpty()) {
-                newPost.imageUrls = crawledNoticeDto.img[0]
+            var originalUrlOnS3: String? = null
+            var thumbnailUrl: String? = null
+
+            val validImageUrl = crawledNoticeDto.img.firstOrNull { url ->
+                val lower = url.lowercase()
+                lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png")
+            }
+
+            if (!validImageUrl.isNullOrBlank()) {
+                try {
+                    val (uploadedOriginal, uploadedThumbnail) =
+                        uploadService.uploadExternalImageAndGenerateThumbnail(validImageUrl)
+                    originalUrlOnS3 = uploadedOriginal
+                    thumbnailUrl = uploadedThumbnail
+                } catch (e: Exception) {
+                    println("❌ 이미지 업로드 실패 (URL: $validImageUrl): ${e.message}")
+                    // 실패 시 그냥 이미지 없이 게시글 저장
+                }
+            }
+
+            val newPost = Posts().apply {
+                this.member = member
+                this.boardType = BoardType.NOTICE_C
+                this.targetUrl = crawledNoticeDto.url
+                this.title = crawledNoticeDto.title
+                this.content = crawledNoticeDto.content
+                this.createdDate = crawledNoticeDto.date.atStartOfDay()
+                this.imageUrls = originalUrlOnS3
+                this.thumbnailUrl = thumbnailUrl
             }
 
             postRepository.save(newPost)
         }
     }
+
 
 
     @Transactional

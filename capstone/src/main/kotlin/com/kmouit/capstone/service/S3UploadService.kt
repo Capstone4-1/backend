@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest
 import java.io.ByteArrayOutputStream
+import java.net.URL
 import java.time.Duration
 import java.util.*
 import javax.imageio.ImageIO
@@ -156,4 +157,43 @@ class S3UploadService(
 
         return "https://${bucket}.s3.${region.id()}.amazonaws.com/$thumbnailKey"
     }
+
+    fun uploadExternalImageAndGenerateThumbnail(externalImageUrl: String): Pair<String?, String?> {
+        if (externalImageUrl.lowercase().endsWith(".webp")) {
+            println("WebP 형식은 건너뜀: $externalImageUrl")
+            return null to null
+        }
+
+        val url = URL(externalImageUrl)
+        val image = ImageIO.read(url)
+            ?: throw IllegalArgumentException("이미지를 읽을 수 없습니다: $externalImageUrl")
+
+        val uuid = UUID.randomUUID().toString()
+        val extension = "jpg"
+
+        val originalKey = "original-images/$uuid.$extension"
+        val originalBaos = ByteArrayOutputStream()
+        ImageIO.write(image, extension, originalBaos)
+        s3Client.putObject(
+            PutObjectRequest.builder().bucket(bucket).key(originalKey)
+                .contentType("image/jpeg").build(),
+            RequestBody.fromBytes(originalBaos.toByteArray())
+        )
+
+        val thumbnailImage = Thumbnails.of(image).size(200, 200).outputFormat(extension).asBufferedImage()
+        val thumbnailBaos = ByteArrayOutputStream()
+        ImageIO.write(thumbnailImage, extension, thumbnailBaos)
+        val thumbnailKey = "thumbnails/$uuid.$extension"
+        s3Client.putObject(
+            PutObjectRequest.builder().bucket(bucket).key(thumbnailKey)
+                .contentType("image/jpeg").build(),
+            RequestBody.fromBytes(thumbnailBaos.toByteArray())
+        )
+
+        val originalUrl = "https://${bucket}.s3.${region.id()}.amazonaws.com/$originalKey"
+        val thumbnailUrl = "https://${bucket}.s3.${region.id()}.amazonaws.com/$thumbnailKey"
+
+        return originalUrl to thumbnailUrl
+    }
+
 }

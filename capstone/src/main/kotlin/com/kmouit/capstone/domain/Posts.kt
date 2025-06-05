@@ -83,6 +83,7 @@ data class SimplePostDto(
     val writerNickname: String,
     val price : Int?,
     val imageUrls: String?,
+    val thumbNailUrl : String?,
     val viewCount: Int,
     val isAuthor: Boolean
 )
@@ -100,6 +101,7 @@ fun Posts.toSimpleDto(currentUserId: Long?): SimplePostDto {
         writerNickname = if (isSecretBoard) "익명" else this.member?.nickname ?: "탈퇴회원",
         price = this.price,
         imageUrls = this.imageUrls,
+        thumbNailUrl = this.thumbnailUrl,
         viewCount = this.viewCount,
         isAuthor = (currentUserId != null && currentUserId == this.member?.id)
     )
