@@ -57,4 +57,33 @@ interface PostRepository : JpaRepository<Posts, Long> {
         @Param("boardType") boardType: BoardType,
         pageable: Pageable,
     ): Page<Posts>
+
+    @Query(
+        """
+    SELECT p FROM Posts p
+    JOIN FETCH p.member m
+    WHERE p.boardType = :boardType
+      AND p.title LIKE %:title%
+    """
+    )
+    fun findByBoardTypeAndTitleContainingWithMember(
+        @Param("boardType") boardType: BoardType,
+        @Param("title") title: String,
+        pageable: Pageable
+    ): Page<Posts>
+
+    @Query(
+        """
+    SELECT p FROM Posts p
+    JOIN FETCH p.member m
+    WHERE p.boardType = :boardType
+      AND m.nickname LIKE %:nickname%
+    """
+    )
+    fun findByBoardTypeAndMemberNicknameContainingWithMember(
+        @Param("boardType") boardType: BoardType,
+        @Param("nickname") nickname: String,
+        pageable: Pageable
+    ): Page<Posts>
+
 }

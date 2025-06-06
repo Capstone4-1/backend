@@ -5,9 +5,11 @@ import com.kmouit.capstone.api.CommentRequestDto
 import com.kmouit.capstone.api.CrawledNoticeDto
 import com.kmouit.capstone.api.PostRequestDto
 import com.kmouit.capstone.domain.*
+import com.kmouit.capstone.exception.CustomAccessDeniedException
 import com.kmouit.capstone.exception.DuplicateFavoriteException
 import com.kmouit.capstone.exception.NoSearchMemberException
 import com.kmouit.capstone.repository.BoardMarkInfoRepository
+import com.kmouit.capstone.repository.CommentRepository
 import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.repository.PostRepository
 import org.springframework.data.domain.Page
@@ -29,7 +31,8 @@ class PostService(
     private val postRepository: PostRepository,
     private val noticeService: NoticeService,
     private val boardMarkInfoRepository: BoardMarkInfoRepository,
-    private val uploadService: S3UploadService
+    private val uploadService: S3UploadService,
+    private val commentRepository: CommentRepository
 ) {
     @Transactional
     fun createComment(requestDto: CommentRequestDto, postId: Long, userDetail: Member) {
@@ -131,20 +134,43 @@ class PostService(
         return post.toDto(currentUserId)
     }
 
-    fun getSummary(boardType: BoardType?, id: Long): List<SimplePostDto> {
-        if (boardType == null) throw IllegalArgumentException("게시판 타입이 null입니다.")
 
+
+    fun getSummary(boardType: BoardType?, currentUserId: Long): List<SimplePostDto> {
+        if (boardType == null) throw IllegalArgumentException("게시판 타입이 null입니다.")
         val pageable = PageRequest.of(0, 3)
+
         val posts = postRepository.findTopByBoardTypeWithMember(boardType, pageable)
 
-        return posts.map { it.toSimpleDto(id) }
+        return posts.map { post ->
+            val commentCount = commentRepository.countByPostId(post.id!!) // 🔹 별도 count 쿼리 (1번)
+            post.toSimpleDto(currentUserId, commentCount)
+        }
     }
 
-    fun findPostDtoByBoardType(boardType: String, pageable: Pageable): Page<SimplePostDto> {
-        val postPage = postRepository.findAllByBoardTypeWithMember(
-            BoardType.from(boardType)!!, pageable
-        )
-        return postPage.map { it.toSimpleDto(0) } //수정
+    fun findPostDtoByBoardType(
+        boardType: String,
+        pageable: Pageable,
+        filter: String?,
+        query: String?
+    ): Page<SimplePostDto> {
+        val boardEnum = BoardType.from(boardType) ?: throw IllegalArgumentException("유효하지 않은 게시판")
+
+        val postPage = when {
+            !query.isNullOrBlank() && filter == "title" ->
+                postRepository.findByBoardTypeAndTitleContainingWithMember(boardEnum, query, pageable)
+
+            !query.isNullOrBlank() && filter == "writer" ->
+                postRepository.findByBoardTypeAndMemberNicknameContainingWithMember(boardEnum, query, pageable)
+
+            else ->
+                postRepository.findAllByBoardTypeWithMember(boardEnum, pageable)
+        }
+
+        return postPage.map { post ->
+            val commentCount = commentRepository.countByPostId(post.id!!)
+            post.toSimpleDto(0, commentCount)
+        }
     }
 
 
@@ -196,6 +222,19 @@ class PostService(
         val member = memberRepository.findById(id).orElseThrow { NoSuchElementException("존재하지 않는 회원") }
         return boardMarkInfoRepository.existsByMemberAndBoardType(member, BoardType.from(boardType.uppercase(Locale.getDefault()))!!)
     }
+
+    @Transactional
+    fun deletePost(postId: Long, currentUser: Member) {
+        val post = postRepository.findById(postId)
+            .orElseThrow { IllegalArgumentException("게시글이 존재하지 않습니다.") }
+
+        if (post.member?.id != currentUser.id) {
+            throw CustomAccessDeniedException("본인의 게시글만 삭제할 수 있습니다.")
+        }
+
+        postRepository.delete(post)
+    }
+
 
 }
 

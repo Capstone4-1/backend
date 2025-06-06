@@ -2,7 +2,6 @@ package com.kmouit.capstone.domain
 
 import com.kmouit.capstone.BoardType
 import jakarta.persistence.*
-import net.coobird.thumbnailator.Thumbnails
 import java.time.LocalDateTime
 
 @Entity
@@ -24,7 +23,6 @@ class Posts(
 
     @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
     var comments: MutableList<Comments> = mutableListOf(),
-    var commentCount: Int = 0,
     var likeCount: Int = 0, // 하; 변수명 like로 했다가 삽질 2시간함; Mysql 예약어였음
     var viewCount: Int = 0,
 
@@ -39,7 +37,6 @@ data class PostDto(
     val title: String,
     val createdDate: LocalDateTime?,
     val content: String?,
-    val commentCount: Int,
     val likeCount: Int,
     val boardType: BoardType,
     val writerNickname: String,
@@ -58,7 +55,6 @@ fun Posts.toDto(currentUserId: Long?): PostDto {
         title = this.title ?: "",
         createdDate = this.createdDate,
         content = this.content,
-        commentCount = this.commentCount,
         likeCount = this.likeCount,
         boardType = this.boardType!!,
         writerNickname = this.member?.nickname ?: "탈퇴회원",
@@ -87,15 +83,14 @@ data class SimplePostDto(
     val viewCount: Int,
     val isAuthor: Boolean
 )
-fun Posts.toSimpleDto(currentUserId: Long?): SimplePostDto {
-
+fun Posts.toSimpleDto(currentUserId: Long?, commentCount: Long): SimplePostDto {
     val isSecretBoard = this.boardType == BoardType.SECRET
 
     return SimplePostDto(
         id = this.id!!,
         title = this.title!!,
         createdDate = this.createdDate,
-        commentCount = this.commentCount,
+        commentCount = comments.size,
         likeCount = this.likeCount,
         boardType = this.boardType!!,
         writerNickname = if (isSecretBoard) "익명" else this.member?.nickname ?: "탈퇴회원",

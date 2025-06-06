@@ -43,20 +43,31 @@ class PostController(
         )
     }
 
-    @PostMapping("/post-down")
-    fun responsePostDown() {
+    @DeleteMapping("/{postId}")
+    fun deletePost(
+        @PathVariable postId: Long,
+        @AuthenticationPrincipal userDetails: CustomUserDetails
+    ): ResponseEntity<Map<String, String>> {
+        postService.deletePost(postId, userDetails.member)
+        return ResponseEntity.ok(mapOf("message" to "게시글 삭제 성공"))
     }
 
 
+    /**
+     * 게시글 페이지 조회
+     */
     @GetMapping
     fun responsePage(
         @RequestParam boardType: String,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "10") size: Int,
+        @RequestParam(required = false) filter: String?,
+        @RequestParam(required = false) query: String?,
         @AuthenticationPrincipal userDetails: CustomUserDetails,
     ): ResponseEntity<Map<String, Any>> {
         val pageable: Pageable = PageRequest.of(page, size)
-        val resultPage: Page<SimplePostDto> = postService.findPostDtoByBoardType(boardType, pageable)
+        val resultPage: Page<SimplePostDto> = postService.findPostDtoByBoardType(boardType, pageable, filter, query)
+
         val response = PostPageResponseDto(
             posts = resultPage.content,
             totalCount = resultPage.totalElements,
