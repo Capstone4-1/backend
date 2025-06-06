@@ -6,12 +6,14 @@ import com.kmouit.capstone.api.CrawledNoticeDto
 import com.kmouit.capstone.api.PostRequestDto
 import com.kmouit.capstone.domain.*
 import com.kmouit.capstone.exception.DuplicateFavoriteException
+import com.kmouit.capstone.exception.NoSearchMemberException
 import com.kmouit.capstone.repository.BoardMarkInfoRepository
 import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.repository.PostRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -81,7 +83,8 @@ class PostService(
     }
 
     @Transactional
-    fun saveCrawledNotices(noticeList: List<CrawledNoticeDto>, member: Member) {
+    fun saveCrawledNotices(noticeList: List<CrawledNoticeDto>, memberId: Long) {
+        val member = memberRepository.findById(memberId).orElseThrow { NoSearchMemberException(HttpStatus.NOT_FOUND, "존재하지 않는 회원") }
         for (crawledNoticeDto in noticeList) {
             var originalUrlOnS3: String? = null
             var thumbnailUrl: String? = null
@@ -99,7 +102,6 @@ class PostService(
                     thumbnailUrl = uploadedThumbnail
                 } catch (e: Exception) {
                     println("❌ 이미지 업로드 실패 (URL: $validImageUrl): ${e.message}")
-                    // 실패 시 그냥 이미지 없이 게시글 저장
                 }
             }
 
@@ -147,7 +149,7 @@ class PostService(
 
 
     @Transactional
-    fun saveBoardMarkInfo(id: Long, boardType: String, boardName: String) {
+    fun saveBoardMarkInfo(id: Long, boardType: String, ) {
         val member = memberRepository.findById(id)
             .orElseThrow { NoSuchElementException("존재하지 않는 회원") }
 
@@ -160,7 +162,6 @@ class PostService(
         val boardMarkInfo = BoardMarkInfo().apply {
             this.member = member
             this.boardType = boardTypeEnum
-            this.boardName = boardName
             this.targetUrl = "/main/community/${boardType.lowercase()}" // 필요한 경우 자동 생성
         }
 

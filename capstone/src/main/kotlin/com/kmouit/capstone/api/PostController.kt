@@ -95,7 +95,8 @@ class PostController(
             "Posts_free" to postService.getSummary(BoardType.from("FREE"), userDetails.getId()),
             "Posts_secret" to postService.getSummary(BoardType.from("SECRET"), userDetails.getId()),
             "Posts_review" to postService.getSummary(BoardType.from("REVIEW"), userDetails.getId()),
-            "Posts_market" to postService.getSummary(BoardType.from("MARKET"), userDetails.getId())
+            "Posts_market" to postService.getSummary(BoardType.from("MARKET"), userDetails.getId()),
+            "Posts_notice" to postService.getSummary(BoardType.from("NOTICE"), userDetails.getId())
         )
         return ResponseEntity.ok(result)
     }
@@ -119,7 +120,7 @@ class PostController(
         @AuthenticationPrincipal userDetails: CustomUserDetails,
         @RequestBody request: FavoriteRequest,
     ): ResponseEntity<Map<String, String>> {
-        postService.saveBoardMarkInfo(userDetails.getId(), request.boardType, request.boardName!!)
+        postService.saveBoardMarkInfo(userDetails.getId(), request.boardType)
         return ResponseEntity.ok(
             mapOf(
                 "message" to "my 즐겨찾기 추가 성공",
@@ -138,7 +139,6 @@ class PostController(
 }
 
 data class FavoriteRequest(
-    val boardName: String?,
     val boardType: String,
 )
 

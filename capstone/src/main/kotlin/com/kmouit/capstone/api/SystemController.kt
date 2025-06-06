@@ -1,7 +1,6 @@
 package com.kmouit.capstone.api
 
 import com.kmouit.capstone.jwt.CustomUserDetails
-import com.kmouit.capstone.service.CrawlingService
 import com.kmouit.capstone.service.PostService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -25,7 +24,7 @@ class SystemController(
         @AuthenticationPrincipal userDetails: CustomUserDetails
     ): ResponseEntity<Map<String, String>> {
 
-        postService.saveCrawledNotices(noticeList, userDetails.member)
+        postService.saveCrawledNotices(noticeList, userDetails.member.id!!)
         return ResponseEntity.ok(mapOf("message" to "크롤링 공지사항 저장 완료 (${noticeList.size}건)"))
     }
 }

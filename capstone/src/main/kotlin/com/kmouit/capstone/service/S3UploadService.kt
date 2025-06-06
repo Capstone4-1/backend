@@ -13,6 +13,8 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest
+import java.awt.Color
+import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.net.URL
 import java.time.Duration
@@ -26,7 +28,7 @@ class S3UploadService(
     @Value("\${cloud.aws.credentials.secret-key}") private val secretKey: String,
     @Value("\${cloud.aws.s3.bucket}") private val bucket: String,
 
-) {
+    ) {
     private val region = Region.AP_NORTHEAST_2
     private val credentialsProvider = StaticCredentialsProvider.create(
         AwsBasicCredentials.create(accessKey, secretKey)
@@ -101,13 +103,17 @@ class S3UploadService(
     }
 
 
+    fun getPresignedUrl(filename: String, contentType: String): Map<String, String> {
+        val uuid = UUID.randomUUID()
+        val extension = filename.substringAfterLast('.', "jpg")
+        val objectKey = "original-images/$uuid.$extension"
 
+        val safeContentType = contentType.ifBlank { "application/octet-stream" }
 
-    fun getPresignedUrl(filename: String): Map<String, String> {
-        val objectKey = "uploads/$filename"
         val putObjectRequest = PutObjectRequest.builder()
             .bucket(bucket)
             .key(objectKey)
+            .contentType(safeContentType)
             .build()
 
         val presignedRequest: PresignedPutObjectRequest =
@@ -119,6 +125,7 @@ class S3UploadService(
 
         val uploadUrl = presignedRequest.url().toString()
         val fileUrl = "https://${bucket}.s3.${region.id()}.amazonaws.com/$objectKey"
+
         return mapOf(
             "uploadUrl" to uploadUrl,
             "fileUrl" to fileUrl
@@ -165,28 +172,47 @@ class S3UploadService(
         }
 
         val url = URL(externalImageUrl)
-        val image = ImageIO.read(url)
+        val originalImage = ImageIO.read(url)
             ?: throw IllegalArgumentException("이미지를 읽을 수 없습니다: $externalImageUrl")
+
+        // ✅ 알파 채널 제거 및 RGB 변환
+        val rgbImage = BufferedImage(originalImage.width, originalImage.height, BufferedImage.TYPE_INT_RGB)
+        val g = rgbImage.createGraphics()
+        g.drawImage(originalImage, 0, 0, Color.WHITE, null) // 배경을 흰색으로 채움
+        g.dispose()
 
         val uuid = UUID.randomUUID().toString()
         val extension = "jpg"
 
-        val originalKey = "original-images/$uuid.$extension"
+        // ✅ 원본 저장 (JPG 변환된)
+        val originalKey = "original-images/crawling-image/$uuid.$extension"
         val originalBaos = ByteArrayOutputStream()
-        ImageIO.write(image, extension, originalBaos)
+        ImageIO.write(rgbImage, extension, originalBaos)
         s3Client.putObject(
-            PutObjectRequest.builder().bucket(bucket).key(originalKey)
-                .contentType("image/jpeg").build(),
+            PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(originalKey)
+                .contentType("image/jpeg")
+                .build(),
             RequestBody.fromBytes(originalBaos.toByteArray())
         )
 
-        val thumbnailImage = Thumbnails.of(image).size(200, 200).outputFormat(extension).asBufferedImage()
+        // ✅ 썸네일 생성
+        val thumbnailImage = Thumbnails.of(rgbImage)
+            .size(200, 200)
+            .outputFormat(extension)
+            .asBufferedImage()
+
         val thumbnailBaos = ByteArrayOutputStream()
         ImageIO.write(thumbnailImage, extension, thumbnailBaos)
-        val thumbnailKey = "thumbnails/$uuid.$extension"
+
+        val thumbnailKey = "thumbnails/crawling-image/$uuid.$extension"
         s3Client.putObject(
-            PutObjectRequest.builder().bucket(bucket).key(thumbnailKey)
-                .contentType("image/jpeg").build(),
+            PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(thumbnailKey)
+                .contentType("image/jpeg")
+                .build(),
             RequestBody.fromBytes(thumbnailBaos.toByteArray())
         )
 

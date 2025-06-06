@@ -89,6 +89,7 @@ data class MemberDto(
     var roles: List<String>,
     var intro: String? = null,
     var profileImageUrl: String? = null,
+    var profileThumbnails : String? = null
 ) {
     constructor(member: Member) : this(
         id = member.id!!,
@@ -98,7 +99,8 @@ data class MemberDto(
         nickname = member.nickname!!,
         roles = member.roles.map { it.name },
         intro = member.intro,
-        profileImageUrl = member.profileImageUrl
+        profileImageUrl = member.profileImageUrl,
+        profileThumbnails = member.thumbnailUrl
     )
 }
 

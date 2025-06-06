@@ -10,6 +10,7 @@ import com.kmouit.capstone.domain.TodoDto
 import com.kmouit.capstone.dtos.JoinForm
 import com.kmouit.capstone.dtos.NoticeDto
 import com.kmouit.capstone.exception.DuplicateUsernameException
+import com.kmouit.capstone.exception.FileSizeLimitExceededException
 import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.repository.TodoRepository
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
@@ -32,10 +33,10 @@ class MemberManageService(
      */
     @Transactional
     fun setProfileImage(id: Long, file: MultipartFile): String {
-        val maxSizeInBytes = MAX_FILE_SIZE // 1MB
+        val maxSizeInBytes = MAX_FILE_SIZE
 
         if (file.size > maxSizeInBytes) {
-            throw IllegalArgumentException("파일 크기는 ${MAX_FILE_SIZE / 1024 / 1024}MB 이하여야 합니다.")
+            throw FileSizeLimitExceededException("파일 크기는 ${MAX_FILE_SIZE / 1024 / 1024}MB 이하여야 합니다.")
         }
         val member =
             memberRepository.findById(id).orElseThrow { NoSuchElementException("존재하지 않는 회원 : setProfileImage") }
