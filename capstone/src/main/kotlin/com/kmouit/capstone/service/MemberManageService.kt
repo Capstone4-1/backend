@@ -117,4 +117,24 @@ class MemberManageService(
         todoRepository.delete(todo)
     }
 
+
+    @Transactional
+    fun setNickname(memberId: Long, newNickname: String) {
+        val trimmed = newNickname.trim()
+
+        val nicknameRegex = Regex("^[a-zA-Z0-9가-힣]{1,10}$")
+        if (!nicknameRegex.matches(trimmed)) {
+            throw IllegalArgumentException("닉네임은 1~10자의 공백·특수문자 없는 한글, 영어, 숫자만 허용됩니다.")
+        }
+
+        if (memberRepository.existsByNickname(trimmed)) {
+            throw IllegalStateException("중복된 닉네임입니다.")
+        }
+
+        val member = memberRepository.findById(memberId)
+            .orElseThrow { NoSuchElementException("회원 정보를 찾을 수 없습니다.") }
+
+        member.nickname = trimmed
+    }
+
 }

@@ -27,16 +27,16 @@ data class JoinForm(
 
 data class MemberSimpleDto(
     var id: Long,
-    var name: String,
-    var username: String,
+    var nickName: String,
     var profileImageUrl: String?,
+    var profileThumbnails: String?,
     val intro: String?,
 ) {
     constructor(member: Member) : this(
         id = member.id!!,
-        username = member.username!!,
-        name = member.name!!,
+        nickName = member.nickname!!,
         profileImageUrl = member.profileImageUrl,
+        profileThumbnails = member.thumbnailUrl,
         intro = member.intro
     )
 }

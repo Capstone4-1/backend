@@ -4,10 +4,7 @@ import com.kmouit.capstone.domain.Member
 import com.kmouit.capstone.service.AdminService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 
 @PreAuthorize("hasRole('ADMIN')")
@@ -29,23 +26,43 @@ class AdminController(
 
         return ResponseEntity.ok(result)
     }
+
+    @PostMapping("/grant-role")
+    fun grantRole(
+        @RequestParam userId: Long,
+        @RequestParam role: String
+    ): ResponseEntity<String> {
+        adminService.grantRole(userId, role)
+        return ResponseEntity.ok("권한 부여 성공")
+    }
+
+    @DeleteMapping("/revoke-role")
+    fun revokeRole(
+        @RequestParam userId: Long,
+        @RequestParam role: String
+    ): ResponseEntity<String> {
+        adminService.revokeRole(userId, role)
+        return ResponseEntity.ok("권한 회수 성공")
+    }
 }
 
 data class MemberSummaryDto(
     val id: Long,
     val username : String,
+    val nickname : String,
     val name: String,
     val email: String,
-    val role: String
+    val roles: List<String>
 ) {
     companion object {
         fun from(member: Member): MemberSummaryDto {
             return MemberSummaryDto(
                 id = member.id!!,
                 username = member.username ?: "",
+                nickname = member.nickname!!,
                 name = member.name ?: "",
                 email = member.email ?: "",
-                role = member.roles.firstOrNull()?.name ?: "N/A"
+                roles = member.roles.map { it.name }
             )
         }
     }

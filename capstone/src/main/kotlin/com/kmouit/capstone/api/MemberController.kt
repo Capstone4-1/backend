@@ -165,18 +165,17 @@ class MemberController(
         @AuthenticationPrincipal userDetails: CustomUserDetails,
         @RequestBody payload: Map<String, String>,
     ): ResponseEntity<Map<String, String>> {
-        val newNickname = payload["nickname"]
+        val newNickname = payload["nickname"]?.trim()
             ?: return ResponseEntity.badRequest().body(mapOf("message" to "nickname 누락"))
-        if (memberRepository.existsByNickname(newNickname)) {
-            return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(mapOf("message" to "중복된 닉네임 입니다."))
-        }
-        val member = memberRepository.findById(userDetails.getId())
-            .orElseThrow { NoSuchElementException("회원 정보를 찾을 수 없습니다.") }
 
-        member.nickname = newNickname
-        memberRepository.save(member)
-        return ResponseEntity.ok(mapOf("message" to "별명 수정 성공"))
+        return try {
+            memberManageService.setNickname(userDetails.getId(), newNickname)
+            ResponseEntity.ok(mapOf("message" to "별명 수정 성공"))
+        } catch (e: IllegalArgumentException) {
+            ResponseEntity.badRequest().body(mapOf("message" to e.message.toString()))
+        } catch (e: IllegalStateException) {
+            ResponseEntity.status(HttpStatus.CONFLICT).body(mapOf("message" to e.message.toString()))
+        }
     }
 
 

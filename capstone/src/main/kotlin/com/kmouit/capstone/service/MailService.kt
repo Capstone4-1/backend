@@ -3,15 +3,18 @@ package com.kmouit.capstone.service
 import com.kmouit.capstone.MailStatus
 import com.kmouit.capstone.api.DuplicateMailRoomException
 import com.kmouit.capstone.domain.*
-import com.kmouit.capstone.dtos.MailDto
 import com.kmouit.capstone.dtos.MemberSimpleDto
 import com.kmouit.capstone.repository.MailRepository
 import com.kmouit.capstone.repository.MailRoomInfoRepository
 import com.kmouit.capstone.repository.MailRoomRepository
 import com.kmouit.capstone.repository.MemberRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.awt.print.Pageable
 import java.time.LocalDateTime
 
 
@@ -23,18 +26,20 @@ class MailService(
     val memberRepository: MemberRepository,
 ) {
     @Transactional
-    fun createMailRoom(username1: String, username2: String): Long {
-        val creator = memberRepository.findByUsername(username1)
-            ?: throw NoSuchElementException("회원을 찾을 수 없습니다.")
-        val invited = memberRepository.findByUsername(username2)
-            ?: throw NoSuchElementException("회원을 찾을 수 없습니다.")
+    fun createMailRoom(id1: Long, id2: Long): Long {
+        val creator = memberRepository.findById(id1)
+            .orElseThrow { NoSuchElementException("보낸 사람을 찾을 수 없습니다.") }
+
+        val invited = memberRepository.findById(id2)
+            .orElseThrow { NoSuchElementException("받는 사람을 찾을 수 없습니다.") }
 
         val existingRoomId = mailRoomInfoRepository.findRoomIdByTwoMembers(creator.id!!, invited.id!!)
         if (existingRoomId != null) {
-            throw DuplicateMailRoomException("이미 중복된 객체가 있습니다.")
+            throw DuplicateMailRoomException("이미 중복된 채팅방이 존재합니다.")
         }
 
-        val mailRoom = mailRoomRepository.save(MailRoom()) // save 후 id가 생김
+        val mailRoom = mailRoomRepository.save(MailRoom()) // 저장 후 ID 생성
+
         val mailRoomInfo1 = MailRoomInfo(
             id = MailRoomInfoId(mailRoom.id!!, creator.id!!),
             mailRoom = mailRoom,
@@ -52,6 +57,7 @@ class MailService(
 
         return mailRoom.id!!
     }
+
 
     //Todo
     @Transactional
@@ -133,7 +139,7 @@ class MailService(
 
 
     @Transactional
-    fun sendMessage(roomId: Long, memberId: Long, partnerId: Long, content: String) {
+    fun sendMessage(roomId: Long, memberId: Long, partnerId: Long, content: String): Mail {
         checkRoomAccess(roomId, memberId)
         val mailRoom = mailRoomRepository.findById(roomId).orElse(null)
         val partner =
@@ -149,6 +155,7 @@ class MailService(
             status = MailStatus.NEW
         )
         mailRoom.mails.add(newMail)
+        return newMail
     }
 
     fun countNewMail(memberId: Long): Int {
@@ -159,6 +166,29 @@ class MailService(
     fun markAllAsRead(roomId: Long, memberId: Long) {
         val unreadMails = mailRepository.findNewMailsByRoomIdAndReceiverId(roomId, memberId)
         unreadMails.forEach { it.status = MailStatus.OLD }
+    }
+
+    fun searchMessagesByPage(roomId: Long, memberId: Long, page: Int, size: Int): Page<MailDto> {
+        checkRoomAccess(roomId, memberId)
+        val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "date"))
+        return mailRepository.findWithMembersByMailRoomId(roomId, pageable)
+            .map { it.toDto() }
+    }
+
+    fun searchMessagesBeforeId(
+        roomId: Long,
+        memberId: Long,
+        beforeId: Long?,
+        size: Int
+    ): List<MailDto> {
+        checkRoomAccess(roomId, memberId)
+        val pageable = PageRequest.of(0, size, Sort.by(Sort.Direction.DESC, "id"))
+        val mails = if (beforeId != null) {
+            mailRepository.findOldMails(roomId, beforeId, pageable)
+        } else {
+            mailRepository.findWithMembersByMailRoomId(roomId, pageable)
+        }
+        return mails.map { it.toDto() }
     }
 }
 

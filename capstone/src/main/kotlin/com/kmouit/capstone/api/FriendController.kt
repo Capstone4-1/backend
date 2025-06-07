@@ -23,29 +23,26 @@ class FriendController(
      * 회원 검색  friendController 로 이동예정
      */
     @GetMapping("/search")
-    fun getMemberByStudentId(@RequestParam studentId: String): ResponseEntity<MemberSimpleDto> {
-        val member = memberRepository.findByUsername(studentId)
+    fun getMemberByNickname(@RequestParam nickname: String): ResponseEntity<MemberSimpleDto> {
+        val member = memberRepository.findByNickname(nickname)
             ?: throw NoSuchElementException("대상 회원이 존재하지 않습니다")
 
         val memberSimpleDto = MemberSimpleDto(member)
         return ResponseEntity.ok().body(memberSimpleDto)
     }
-
     /**
      * 친구 요청
      */
     @PostMapping("/add-friend")
     fun addFriend(
         @AuthenticationPrincipal userDetails: CustomUserDetails,
-        @RequestBody body: Map<String, String>,
-    ): ResponseEntity<out Any> {
+        @RequestBody body: Map<String, Long>, // 👈 Map<String, Long>으로 변경
+    ): ResponseEntity<Any> {
         val myId = userDetails.getId()
-        val studentId = body["studentId"] ?: return ResponseEntity.badRequest().body("studentId 누락됨")
-        friendService.addFriend(myId, studentId)
+        val receiverId = body["id"] ?: return ResponseEntity.badRequest().body("id 누락됨")
+        friendService.addFriend(myId, receiverId)
         return ResponseEntity.ok(mapOf("message" to "친구 요청 성공"))
-
     }
-
     /**
      * 친구 요청 거절
      */

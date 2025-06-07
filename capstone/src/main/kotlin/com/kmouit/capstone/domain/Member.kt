@@ -2,7 +2,6 @@ package com.kmouit.capstone.domain
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.kmouit.capstone.Role
-import jakarta.annotation.Nullable
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
 
@@ -14,24 +13,31 @@ class Member(
 
     @Column(nullable = false, unique = true)
     @NotNull
-    var username: String? = null,  //학번임
+    var username: String? = null,
 
     @Column(nullable = false)
     @NotNull
     var password: String? = null,
 
-    @NotNull
     @Column(nullable = false)
+    @NotNull
     var name: String? = null,
-    @NotNull
+
     @Column(nullable = false, unique = true)
-    var email: String? = null,
     @NotNull
-    @Column(nullable = false)
+    var email: String? = null,
+
+    @Column(nullable = false, unique = true, length = 10) // ✅ 최대 10자 제한
+    @NotNull
+    @jakarta.validation.constraints.Pattern(
+        regexp = "^[a-zA-Z0-9가-힣]{1,10}$", // ✅ 공백 및 특수문자 불가 정규식
+        message = "닉네임은 1~10자의 한글, 영어, 숫자만 가능합니다. 공백과 특수문자는 사용할 수 없습니다."
+    )
     var nickname: String? = null,
 
-    var profileImageUrl: String? =null,
+    var profileImageUrl: String? = null,
     var thumbnailUrl: String? = null,
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
         name = "member_roles",
@@ -41,8 +47,11 @@ class Member(
     @Column(name = "role")
     var roles: MutableSet<Role> = mutableSetOf(),
 
-    @Column(length = 200)
-    @Nullable
+    @Column(length = 200) // ✅ DB 제약
+    @jakarta.validation.constraints.Size(
+        max = 200,
+        message = "자기소개는 200자 이내로 작성해주세요."
+    )
     var intro: String? = null,
 
     @JsonIgnore
@@ -61,6 +70,4 @@ class Member(
         notice.member = null
         notices.remove(notice)
     }
-
-
 }

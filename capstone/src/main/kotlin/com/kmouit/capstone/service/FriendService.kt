@@ -87,25 +87,51 @@ class FriendService(
      * 친구 신청
      */
     @Transactional
-    fun addFriend(id: Long, studentId: String) {
-        val sender = memberRepository.findById(id).orElseThrow { NoSuchElementException("송신 회원을 찾을수 없습니다") }
-        val receiver = memberRepository.findByUsername(studentId) ?: throw NoSuchElementException("수신 회원을 찾을수 없습니다")
-        if (sender.id == receiver.id) {
+    fun addFriend(myId: Long, receiverId: Long) {
+        val sender = memberRepository.findById(myId)
+            .orElseThrow { NoSuchElementException("송신 회원을 찾을 수 없습니다") }
+
+        val receiver = memberRepository.findById(receiverId)
+            .orElseThrow { NoSuchElementException("수신 회원을 찾을 수 없습니다") }
+
+        if (sender.id == receiver.id)
             throw IllegalStateException("자신에게 요청을 보낼 수 없습니다")
-        }
-        val existingFriendInfo = friendInfoRepository.findById(FriendInfoId(sender, receiver))
-        if (existingFriendInfo.isPresent) {
+
+        val friendId = FriendInfoId(sender, receiver)
+        if (friendInfoRepository.existsById(friendId)) {
             throw IllegalStateException("이미 친구 요청을 보냈거나 친구 상태입니다")
         }
-        val newFriendInfo = FriendInfo(
-            friendInfoId = FriendInfoId(sender, receiver),
-            status = FriendStatus.SENDING
+
+        friendInfoRepository.save(
+            FriendInfo(friendInfoId = friendId, status = FriendStatus.SENDING)
         )
-        friendInfoRepository.save(newFriendInfo)
     }
 
     fun deleteFriend() {
 
+    }
+
+    @Transactional
+    fun addFriendByNickname(myId: Long, nickname: String) {
+        val sender = memberRepository.findById(myId)
+            .orElseThrow { NoSuchElementException("송신 회원을 찾을 수 없습니다") }
+        val receiver = memberRepository.findByNickname(nickname)
+            ?: throw NoSuchElementException("수신 회원을 찾을 수 없습니다")
+        if (sender.id == receiver.id) {
+            throw IllegalStateException("자기 자신에게 친구 요청을 보낼 수 없습니다")
+        }
+        val friendId = FriendInfoId(sender, receiver)
+
+        // 중복 요청 방지
+        if (friendInfoRepository.existsById(friendId)) {
+            throw IllegalStateException("이미 친구 요청을 보냈거나 친구 상태입니다")
+        }
+        val newFriendInfo = FriendInfo(
+            friendInfoId = friendId,
+            status = FriendStatus.SENDING
+        )
+
+        friendInfoRepository.save(newFriendInfo)
     }
 
 
