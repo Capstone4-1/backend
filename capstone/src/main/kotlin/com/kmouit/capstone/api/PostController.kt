@@ -43,6 +43,15 @@ class PostController(
         )
     }
 
+
+    @PostMapping("/lecture-post-up")
+    fun createLecturePost(
+        @RequestBody requestDto: LecturePostRequestDto,
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+    ): ResponseEntity<Map<String, String>> {
+        postService.createLecturePost(requestDto, userDetails.member)
+        return ResponseEntity.ok(mapOf("message" to "lecture-post-up 성공"))
+    }
     @DeleteMapping("/{postId}")
     fun deletePost(
         @PathVariable postId: Long,
@@ -171,4 +180,12 @@ data class PostRequestDto(
 
 data class CommentRequestDto(
     var content: String,
+)
+
+data class LecturePostRequestDto(
+    val lectureId: Long,
+    val boardType: String,  // LECTURE_Q, LECTURE_N, LECTURE_REF, LECTURE_R
+    val title: String,
+    val content: String,
+    val imageUrls: String? = null
 )

@@ -8,6 +8,8 @@ enum class Role(val value:String) {
     ADMIN("ADMIN"),
     SYSTEM("SYSTEM");
 
+
+
     companion object {
         fun from(value: String): Role? =
             Role.entries.find { it.value == value.uppercase() }
@@ -31,16 +33,30 @@ enum class BoardType(val value: String) {
     REVIEW("REVIEW"),
     NOTICE_C("NOTICE_C"),
 
-    LECTURE_Q("LECTURE_Q"),
-    LECTURE_NOTICE("LECTURE_NOTICE"),
-    LECTURE_REF("LECTURE_REF");
-
+    //lecture 관련 타입
+    LECTURE_Q("LECTURE_Q"), //질문
+    LECTURE_N("LECTURE_N"),  //공지
+    LECTURE_REF("LECTURE_REF"),
+    LECTURE_R("LECTURE_R"); //후기
 
     companion object {
         fun from(value: String): BoardType? =
             entries.find { it.value == value.uppercase() }
     }
 }
+enum class LecturePostType(val value: String) {
+    //lecture 관련 타입
+    LECTURE_Q("LECTURE_Q"), //질문
+    LECTURE_N("LECTURE_N"),  //공지
+    LECTURE_REF("LECTURE_REF"),
+    LECTURE_R("LECTURE_R"); //후기
+
+    companion object {
+        fun from(value: String): LecturePostType? =
+            entries.find { it.value == value.uppercase() }
+    }
+}
+
 
 enum class NoticeType(val value : String?){
     NEW_COMMENT("NEW_COMMENT"),

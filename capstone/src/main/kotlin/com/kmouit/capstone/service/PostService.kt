@@ -1,23 +1,23 @@
 package com.kmouit.capstone.service
 
 import com.kmouit.capstone.BoardType
+import com.kmouit.capstone.LecturePostType
 import com.kmouit.capstone.api.CommentRequestDto
 import com.kmouit.capstone.api.CrawledNoticeDto
+import com.kmouit.capstone.api.LecturePostRequestDto
 import com.kmouit.capstone.api.PostRequestDto
 import com.kmouit.capstone.domain.*
 import com.kmouit.capstone.exception.CustomAccessDeniedException
 import com.kmouit.capstone.exception.DuplicateFavoriteException
 import com.kmouit.capstone.exception.NoSearchMemberException
-import com.kmouit.capstone.repository.BoardMarkInfoRepository
-import com.kmouit.capstone.repository.CommentRepository
-import com.kmouit.capstone.repository.MemberRepository
-import com.kmouit.capstone.repository.PostRepository
+import com.kmouit.capstone.repository.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.security.PrivateKey
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.NoSuchElementException
@@ -32,7 +32,9 @@ class PostService(
     private val noticeService: NoticeService,
     private val boardMarkInfoRepository: BoardMarkInfoRepository,
     private val uploadService: S3UploadService,
-    private val commentRepository: CommentRepository
+    private val commentRepository: CommentRepository,
+    private val lectureRoomRepository: LectureRoomRepository,
+    private val lecturePostRepository: LecturePostRepository
 ) {
     @Transactional
     fun createComment(requestDto: CommentRequestDto, postId: Long, userDetail: Member) {
@@ -81,8 +83,34 @@ class PostService(
         newPost.price = requestDto.price
         newPost.thumbnailUrl = thumbnailUrl
 
-
         postRepository.save(newPost)
+    }
+
+
+    @Transactional
+    fun createLecturePost(dto: LecturePostRequestDto, member: Member) {
+        // 예시 구현
+        val lectureRoom = lectureRoomRepository.findById(dto.lectureId)
+            .orElseThrow { IllegalArgumentException("해당 강의가 존재하지 않습니다.") }
+
+        val originalUrl = dto.imageUrls
+
+        var thumbnailUrl: String? = null
+        if (!originalUrl.isNullOrBlank()) {
+            thumbnailUrl = uploadService.generateThumbnailFromOriginalUrl(originalUrl)
+        }
+        val post = LecturePosts(
+            createdDate = LocalDateTime.now(),
+            title = dto.title,
+            content = dto.content,
+            lecturePostType = LecturePostType.valueOf(dto.boardType),
+            imageUrls = dto.imageUrls,
+            member = member,
+            lectureRoom = lectureRoom,
+            thumbnailUrl = thumbnailUrl
+        )
+
+        lecturePostRepository.save(post)
     }
 
     @Transactional
@@ -234,6 +262,8 @@ class PostService(
 
         postRepository.delete(post)
     }
+
+
 
 
 }

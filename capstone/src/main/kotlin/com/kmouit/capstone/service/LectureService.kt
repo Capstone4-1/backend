@@ -1,8 +1,76 @@
 package com.kmouit.capstone.service
 
+import com.kmouit.capstone.LecturePostType
+import com.kmouit.capstone.Role
+import com.kmouit.capstone.api.CreateLectureRoomRequest
+import com.kmouit.capstone.domain.*
+import com.kmouit.capstone.exception.CustomAccessDeniedException
+import com.kmouit.capstone.repository.LecturePostRepository
+import com.kmouit.capstone.repository.LectureRoomRepository
+import com.kmouit.capstone.repository.MemberRepository
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
+import java.util.*
 
-
+@Transactional(readOnly = true)
 @Service
-class LectureService {
+class LectureService(
+    private val lectureRoomRepository: LectureRoomRepository,
+    private val memberRepository: MemberRepository,
+    private val lecturePostRepository: LecturePostRepository,
+) {
+
+
+    @Transactional
+    fun createLectureRoom(userId: Long, request: CreateLectureRoomRequest): LectureRoomDto {
+        val member = memberRepository.findById(userId)
+            .orElseThrow { IllegalArgumentException("사용자를 찾을 수 없습니다.") }
+
+        if (!member.roles.contains(Role.PROFESSOR) && !member.roles.contains(Role.ADMIN)) {
+            throw IllegalAccessException("강의 생성 권한이 없습니다.")
+        }
+
+        val lectureRoom = LectureRoom(
+            title = request.title,
+            createBy = member,
+            grade = request.grade,
+            semester = request.semester,
+            intro = request.intro,
+            themeColor = request.themeColor,
+            createdDate = LocalDate.now(),
+            code = generateCode()
+        )
+
+        val saved = lectureRoomRepository.save(lectureRoom)
+        return LectureRoomDto.from(saved)
+    }
+
+    private fun generateCode(): String {
+        return UUID.randomUUID().toString().substring(0, 8)
+    }
+
+    fun getAllLectureRooms(): List<LectureRoomSummaryDto> {
+        return lectureRoomRepository.findAll()
+            .map { LectureRoomSummaryDto.from(it) }
+    }
+
+    fun getLectureRoomById(id: Long): LectureRoomDto {
+        val lectureRoom = lectureRoomRepository.findById(id)
+            .orElseThrow { NoSuchElementException("해당 강의실이 존재하지 않습니다.") }
+
+        return LectureRoomDto.from(lectureRoom)
+    }
+
+
+    fun getPostsByLectureAndPostType(
+        lectureId: Long,
+        postType: LecturePostType,
+        currentUserId: Long?,
+    ): List<LecturePostsDto> {
+        val posts =
+            lecturePostRepository.findWithMemberAndLectureRoomByLectureRoomIdAndLecturePostType(lectureId, postType)
+        return posts.map { it.toDto(currentUserId) }
+    }
+
 }
