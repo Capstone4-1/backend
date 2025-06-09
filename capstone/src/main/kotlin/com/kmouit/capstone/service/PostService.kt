@@ -32,6 +32,7 @@ class PostService(
     private val noticeService: NoticeService,
     private val boardMarkInfoRepository: BoardMarkInfoRepository,
     private val uploadService: S3UploadService,
+    private val s3UploadService: S3UploadService,
     private val commentRepository: CommentRepository,
     private val lectureRoomRepository: LectureRoomRepository,
     private val lecturePostRepository: LecturePostRepository
@@ -269,8 +270,13 @@ class PostService(
             throw CustomAccessDeniedException("본인의 게시글만 삭제할 수 있습니다.")
         }
 
+        // ✅ 이미지 및 썸네일 S3 삭제
+        s3UploadService.deleteAllImages(post.imageUrls, post.thumbnailUrl)
+
+        // ✅ 게시글 DB 삭제
         postRepository.delete(post)
     }
+
 
 
 

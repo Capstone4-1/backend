@@ -33,10 +33,11 @@ data class LectureRoomDto(
     val semester: Int?,
     val intro: String?,
     val createdDate: LocalDate?,
-    val code: String?
+    val code: String?,
+    val isMarked: Boolean
 ) {
     companion object {
-        fun from(room: LectureRoom): LectureRoomDto {
+        fun from(room: LectureRoom, isMarked: Boolean = false): LectureRoomDto {
             return LectureRoomDto(
                 id = room.id!!,
                 title = room.title ?: "",
@@ -49,7 +50,8 @@ data class LectureRoomDto(
                 semester = room.semester,
                 intro = room.intro,
                 createdDate = room.createdDate,
-                code = room.code
+                code = room.code,
+                isMarked = isMarked
             )
         }
     }

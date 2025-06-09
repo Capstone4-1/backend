@@ -4,7 +4,7 @@ import com.kmouit.capstone.LecturePostType
 import com.kmouit.capstone.Role
 import com.kmouit.capstone.api.CreateLectureRoomRequest
 import com.kmouit.capstone.domain.*
-import com.kmouit.capstone.exception.CustomAccessDeniedException
+import com.kmouit.capstone.repository.LectureMarkInfoRepository
 import com.kmouit.capstone.repository.LecturePostRepository
 import com.kmouit.capstone.repository.LectureRoomRepository
 import com.kmouit.capstone.repository.MemberRepository
@@ -19,6 +19,7 @@ class LectureService(
     private val lectureRoomRepository: LectureRoomRepository,
     private val memberRepository: MemberRepository,
     private val lecturePostRepository: LecturePostRepository,
+    private val lectureMarkInfoRepository: LectureMarkInfoRepository,
 ) {
 
 
@@ -55,13 +56,17 @@ class LectureService(
             .map { LectureRoomSummaryDto.from(it) }
     }
 
-    fun getLectureRoomById(id: Long): LectureRoomDto {
+    fun getLectureRoomById(id: Long, memberId: Long): LectureRoomDto {
         val lectureRoom = lectureRoomRepository.findById(id)
             .orElseThrow { NoSuchElementException("해당 강의실이 존재하지 않습니다.") }
 
-        return LectureRoomDto.from(lectureRoom)
-    }
+        val member = memberRepository.findById(memberId)
+            .orElseThrow { NoSuchElementException("사용자를 찾을 수 없습니다.") }
 
+        val isMarked = lectureMarkInfoRepository.existsByMemberAndLectureRoom(member, lectureRoom)
+
+        return LectureRoomDto.from(lectureRoom, isMarked)
+    }
 
     fun getPostsByLectureAndPostType(
         lectureId: Long,
@@ -73,4 +78,33 @@ class LectureService(
         return posts.map { it.toDto(currentUserId) }
     }
 
+
+    // 강의실 즐겨찾기===
+
+    fun findMyLectureFavorites(memberId: Long): List<LectureRoomSummaryDto> {
+        val member = memberRepository.findById(memberId).orElseThrow()
+        val markList = lectureMarkInfoRepository.findWithLectureRoomAndProfessorByMember(member)
+        return markList.map { LectureRoomSummaryDto.from(it.lectureRoom!!) }
+    }
+
+
+    @Transactional
+    fun saveLectureMark(memberId: Long, lectureRoomId: Long) {
+        val member = memberRepository.findById(memberId).orElseThrow()
+        val room = lectureRoomRepository.findById(lectureRoomId).orElseThrow()
+        if (lectureMarkInfoRepository.existsByMemberAndLectureRoom(member, room)) return
+        val mark = LectureMarkInfo(member = member, lectureRoom = room, targetUrl = null)
+        lectureMarkInfoRepository.save(mark)
+    }
+
+    @Transactional
+
+    fun deleteLectureMark(memberId: Long, lectureRoomId: Long) {
+        val member = memberRepository.findById(memberId).orElseThrow()
+        val room = lectureRoomRepository.findById(lectureRoomId).orElseThrow()
+        val mark = lectureMarkInfoRepository.findByMemberAndLectureRoom(member, room)
+            ?: throw IllegalArgumentException("즐겨찾기 정보가 존재하지 않습니다.")
+        lectureMarkInfoRepository.delete(mark)
+    }
+    //=======================
 }

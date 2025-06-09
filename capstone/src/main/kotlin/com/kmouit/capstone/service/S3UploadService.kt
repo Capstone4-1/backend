@@ -9,6 +9,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
@@ -142,16 +143,19 @@ class S3UploadService(
                 .build()
         )
 
-        val thumbnailImage = Thumbnails.of(s3Object)
+        // ✅ InputStream 직접 사용
+        val bufferedImage = ImageIO.read(s3Object)
+            ?: throw IllegalArgumentException("❌ S3 이미지 스트림을 읽을 수 없습니다. URL: $originalUrl")
+
+        val baos = ByteArrayOutputStream()
+
+        Thumbnails.of(bufferedImage) // ✅ vararg 필요 없음
             .size(200, 200)
             .outputFormat("jpg")
-            .asBufferedImage()
+            .toOutputStream(baos)
 
         val uuid = UUID.randomUUID().toString()
         val thumbnailKey = "thumbnails/$uuid.jpg"
-
-        val baos = ByteArrayOutputStream()
-        ImageIO.write(thumbnailImage, "jpg", baos)
 
         s3Client.putObject(
             PutObjectRequest.builder()
@@ -164,6 +168,7 @@ class S3UploadService(
 
         return "https://${bucket}.s3.${region.id()}.amazonaws.com/$thumbnailKey"
     }
+
 
     fun uploadExternalImageAndGenerateThumbnail(externalImageUrl: String): Pair<String?, String?> {
         if (externalImageUrl.lowercase().endsWith(".webp")) {
@@ -222,4 +227,34 @@ class S3UploadService(
         return originalUrl to thumbnailUrl
     }
 
+
+
+
+    fun extractS3KeyFromUrl(url: String): String {
+        return url.substringAfter("amazonaws.com/")
+    }
+
+    // 🔹 S3 객체 삭제
+    fun deleteS3Object(key: String) {
+        try {
+            s3Client.deleteObject {
+                it.bucket(bucket).key(key)
+            }
+            println("✅ S3 삭제 완료: $key")
+        } catch (e: Exception) {
+            println("❌ S3 삭제 실패: $key, ${e.message}")
+        }
+    }
+
+    // 🔹 이미지/썸네일 전부 삭제
+    fun deleteAllImages(imageUrls: String?, thumbnailUrl: String?) {
+        // 1. 이미지 URL 여러 개 있을 경우 (쉼표 구분)
+        imageUrls?.split(",")?.map { it.trim() }?.forEach { url ->
+            if (url.isNotBlank()) deleteS3Object(extractS3KeyFromUrl(url))
+        }
+
+        if (!thumbnailUrl.isNullOrBlank()) {
+            deleteS3Object(extractS3KeyFromUrl(thumbnailUrl))
+        }
+    }
 }
