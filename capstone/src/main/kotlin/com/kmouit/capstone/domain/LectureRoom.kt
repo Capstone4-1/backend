@@ -67,10 +67,11 @@ data class LectureRoomSummaryDto(
     val semester: Int?,
     val intro: String?,
     val themeColor: String,
-    val createdDate: LocalDate?
+    val createdDate: LocalDate?,
+    val markedCount: Int? // ✅ 추가됨
 ) {
     companion object {
-        fun from(room: LectureRoom): LectureRoomSummaryDto {
+        fun from(room: LectureRoom, markedCount: Int =0): LectureRoomSummaryDto {
             return LectureRoomSummaryDto(
                 id = room.id!!,
                 title = room.title ?: "",
@@ -81,7 +82,8 @@ data class LectureRoomSummaryDto(
                 semester = room.semester,
                 intro = room.intro,
                 themeColor = room.themeColor ?: "#000000",
-                createdDate = room.createdDate
+                createdDate = room.createdDate,
+                markedCount = markedCount // ✅ 반영
             )
         }
     }

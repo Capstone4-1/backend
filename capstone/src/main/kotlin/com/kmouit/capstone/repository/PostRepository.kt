@@ -1,6 +1,7 @@
 package com.kmouit.capstone.repository
 
 import com.kmouit.capstone.BoardType
+import com.kmouit.capstone.domain.Comments
 import com.kmouit.capstone.domain.Posts
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -20,10 +21,8 @@ interface PostRepository : JpaRepository<Posts, Long> {
         """
     SELECT p FROM Posts p
     JOIN FETCH p.member
-    LEFT JOIN FETCH p.comments c
-    LEFT JOIN FETCH c.member
     WHERE p.id = :id
-"""
+    """
     )
     fun findPostWithDetails(@Param("id") id: Long): Posts?
 
@@ -69,7 +68,7 @@ interface PostRepository : JpaRepository<Posts, Long> {
     fun findByBoardTypeAndTitleContainingWithMember(
         @Param("boardType") boardType: BoardType,
         @Param("title") title: String,
-        pageable: Pageable
+        pageable: Pageable,
     ): Page<Posts>
 
     @Query(
@@ -83,7 +82,17 @@ interface PostRepository : JpaRepository<Posts, Long> {
     fun findByBoardTypeAndMemberNicknameContainingWithMember(
         @Param("boardType") boardType: BoardType,
         @Param("nickname") nickname: String,
-        pageable: Pageable
+        pageable: Pageable,
     ): Page<Posts>
+
+
+    @Query(
+        """
+    SELECT c FROM Comments c 
+    JOIN FETCH c.member
+    WHERE c.post.id = :postId AND c.parent IS NULL
+"""
+    )
+    fun findTopLevelCommentsByPostId(@Param("postId") postId: Long): List<Comments>
 
 }

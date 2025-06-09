@@ -23,6 +23,10 @@ class Comments (
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     var post: Posts? = null,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "lecture_post_id")
+    var lecturePost: LecturePosts? = null,
     var likeCount : Int = 0
 )
 
@@ -35,18 +39,21 @@ data class CommentDto(
     val writerProfileThumbnails: String?,
     var createdDate: LocalDateTime,
     var likeCount: Int,
-    var isAuthor: Boolean
+    var isAuthor: Boolean,
+    var hasChildren: Boolean //
 )
+
 fun Comments.toDto(currentUserId: Long?): CommentDto {
     return CommentDto(
-        id = this.id!!,
-        content = this.content ?: "",
+        id = this.id ?: throw IllegalStateException("댓글 ID가 null입니다."),
+        content = this.content.orEmpty(),
         writerId = this.member?.id ?: -1,
         writerNickname = this.member?.nickname ?: "탈퇴회원",
         writerProfileImageUrl = this.member?.profileImageUrl,
         writerProfileThumbnails = this.member?.thumbnailUrl,
         createdDate = this.createdDate ?: LocalDateTime.now(),
         likeCount = this.likeCount,
-        isAuthor = (currentUserId != null && currentUserId == this.member?.id)
+        isAuthor = (currentUserId != null && currentUserId == this.member?.id),
+        hasChildren = this.replies.isNotEmpty()
     )
 }

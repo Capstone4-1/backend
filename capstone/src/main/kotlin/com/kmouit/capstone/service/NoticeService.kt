@@ -2,6 +2,7 @@ package com.kmouit.capstone.service
 
 import com.kmouit.capstone.BoardType
 import com.kmouit.capstone.NoticeInfoStatus.READ
+import com.kmouit.capstone.NoticeType
 import com.kmouit.capstone.NoticeType.NEW_COMMENT
 import com.kmouit.capstone.domain.Member
 import com.kmouit.capstone.domain.Notice
@@ -63,6 +64,22 @@ class NoticeService(
         val notices = noticeRepository.findAllById(noticeIds)
         notices.forEach { it.status = READ }
     }
+
+    @Transactional
+    fun createLecturePostNotice(professor: Member, postTitle: String, lectureRoomId: Long, postId: Long) {
+        val postUrl = "/main/study-dashboard/$lectureRoomId/$postId"
+
+        val notice = Notice().apply {
+            this.date = LocalDateTime.now()
+            this.content = "'$postTitle' 글이 새로 작성되었습니다."
+            this.noticeType = NoticeType.NEW_LECTURE_POST
+            this.targetUrl = postUrl
+            this.member = professor
+        }
+
+        professor.addNotice(notice)
+    }
+
 
 
 }

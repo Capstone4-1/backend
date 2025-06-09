@@ -48,9 +48,9 @@ data class LecturePostsDto(
     val writerId: Long?,
     var imageUrls: String?= null,
     var viewCount : Int?,
-    var isAuthor: Boolean
+    var isAuthor: Boolean,
 )
-fun LecturePosts.toDto(currentUserId: Long?): LecturePostsDto {
+fun LecturePosts.toDto(currentUserId: Long?, markedCount: Int = 0): LecturePostsDto {
     return LecturePostsDto(
         id = this.id!!,
         title = this.title ?: "",
@@ -65,7 +65,7 @@ fun LecturePosts.toDto(currentUserId: Long?): LecturePostsDto {
         writerId = this.member?.id,
         imageUrls = this.imageUrls,
         viewCount = this.viewCount,
-        isAuthor = (currentUserId != null && currentUserId == this.member?.id)
+        isAuthor = (currentUserId != null && currentUserId == this.member?.id),
     )
 }
 

@@ -59,6 +59,21 @@ class FriendController(
 
 
     /**
+     * 친구 삭제
+     */
+    @DeleteMapping("/{targetId}")
+    fun removeFriend(
+        @PathVariable targetId: Long,
+        @AuthenticationPrincipal userDetails: CustomUserDetails
+    ): ResponseEntity<Map<String, String>> {
+        val currentUserId = userDetails.getId()
+        friendService.removeFriend(currentUserId, targetId)
+        return ResponseEntity.ok(mapOf("message" to "친구 삭제 성공"))
+    }
+
+
+
+    /**
      * 친구 요청 수락
      */
     @PostMapping("/accept-friend")

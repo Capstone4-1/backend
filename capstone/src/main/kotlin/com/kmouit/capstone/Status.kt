@@ -60,6 +60,7 @@ enum class LecturePostType(val value: String) {
 
 enum class NoticeType(val value : String?){
     NEW_COMMENT("NEW_COMMENT"),
+    NEW_LECTURE_POST("NEW_LECTURE_POST")
 }
 
 enum class TodoItemStatus(val value: String) {

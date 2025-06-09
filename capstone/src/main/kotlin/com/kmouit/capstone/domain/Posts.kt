@@ -44,7 +44,6 @@ data class PostDto(
     val writerProfileThumbnails: String?,
     val writerId: Long?,
     var imageUrls: String?= null,
-    val comments: List<CommentDto>,
     var price : Int?,
     var viewCount : Int?,
     var isAuthor: Boolean
@@ -62,7 +61,6 @@ fun Posts.toDto(currentUserId: Long?): PostDto {
         writerProfileThumbnails = this.member?.thumbnailUrl,
         writerId = this.member?.id,
         imageUrls = this.imageUrls,
-        comments = this.comments.map { it.toDto(currentUserId) },
         price = this.price,
         viewCount = this.viewCount,
         isAuthor = (currentUserId != null && currentUserId == this.member?.id)

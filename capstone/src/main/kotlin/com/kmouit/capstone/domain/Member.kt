@@ -71,3 +71,31 @@ class Member(
         notices.remove(notice)
     }
 }
+
+
+data class FriendSummaryDto(
+    var id: Long,
+    var username: String,
+    var name: String,
+    var email: String,
+    var nickname: String,
+    var roles: List<String>,
+    var intro: String? = null,
+    var profileImageUrl: String? = null,
+    var profileThumbnails : String? = null,
+    val isFriend: Boolean // 🔽 친구 여부 추가
+) {
+    constructor(member: Member, isFriend: Boolean) : this(
+        id = member.id!!,
+        username = member.username!!,
+        name = member.name!!,
+        email = member.email!!,
+        nickname = member.nickname!!,
+        roles = member.roles.map { it.name },
+        intro = member.intro,
+        profileImageUrl = member.profileImageUrl,
+        profileThumbnails = member.thumbnailUrl,
+        isFriend = isFriend
+    )
+}
+

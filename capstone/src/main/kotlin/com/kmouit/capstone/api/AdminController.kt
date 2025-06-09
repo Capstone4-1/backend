@@ -48,21 +48,21 @@ class AdminController(
 
 data class MemberSummaryDto(
     val id: Long,
-    val username : String,
-    val nickname : String,
+    val username: String,
+    val nickname: String,
     val name: String,
     val email: String,
-    val roles: List<String>
+    val roles: List<String>,
 ) {
     companion object {
-        fun from(member: Member): MemberSummaryDto {
+        fun from(member: Member ): MemberSummaryDto {
             return MemberSummaryDto(
                 id = member.id!!,
                 username = member.username ?: "",
                 nickname = member.nickname!!,
                 name = member.name ?: "",
                 email = member.email ?: "",
-                roles = member.roles.map { it.name }
+                roles = member.roles.map { it.name },
             )
         }
     }

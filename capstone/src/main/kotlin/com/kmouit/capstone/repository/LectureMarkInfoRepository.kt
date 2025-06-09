@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface LectureMarkInfoRepository :JpaRepository < LectureMarkInfo, Long> {
-    fun findByMember(member: Member): List<LectureMarkInfo>
     fun findByMemberAndLectureRoom(member: Member, room: LectureRoom): LectureMarkInfo?
     fun existsByMemberAndLectureRoom(member: Member, room: LectureRoom): Boolean
 
@@ -24,4 +23,7 @@ interface LectureMarkInfoRepository :JpaRepository < LectureMarkInfo, Long> {
     fun findWithLectureRoomAndProfessorByMember(
         @Param("member") member: Member
     ): List<LectureMarkInfo>
+
+    fun countByLectureRoom_Id(roomId: Long): Int
+
 }

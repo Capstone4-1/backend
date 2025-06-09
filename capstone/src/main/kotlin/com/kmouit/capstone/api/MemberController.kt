@@ -1,14 +1,15 @@
 package com.kmouit.capstone.api
 
 import com.kmouit.capstone.TodoItemStatus
+import com.kmouit.capstone.domain.FriendSummaryDto
 import com.kmouit.capstone.domain.Todo
 import com.kmouit.capstone.domain.TodoDto
 import com.kmouit.capstone.dtos.*
 import com.kmouit.capstone.jwt.CustomUserDetails
+import com.kmouit.capstone.repository.FriendInfoRepository
 import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.repository.TodoRepository
 import com.kmouit.capstone.service.MemberManageService
-import com.kmouit.capstone.service.S3UploadService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -23,6 +24,7 @@ class MemberController(
     private val memberRepository: MemberRepository,
     private val memberManageService: MemberManageService,
     private val todoRepository: TodoRepository,
+    private val friendInfoRepository: FriendInfoRepository
 ) {
 
     /**
@@ -56,9 +58,18 @@ class MemberController(
      *  모달용 유저 정보 조회
      */
     @GetMapping("/summary/{userId}")
-    fun getMemberInfo(@PathVariable userId: Long): ResponseEntity<MemberDto> {
-        val member = memberRepository.findById(userId).orElseThrow { NoSuchElementException("대상 회원이 존재하지 않습니다") }
-        return ResponseEntity.ok(MemberDto(member))
+    fun getMemberInfo(
+        @PathVariable userId: Long,
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+    ): ResponseEntity<FriendSummaryDto> {
+        val member = memberRepository.findById(userId)
+            .orElseThrow { NoSuchElementException("대상 회원이 존재하지 않습니다") }
+
+        val currentUserId = userDetails.getId()
+
+        val isFriend = friendInfoRepository.areFriends(currentUserId, userId)
+
+        return ResponseEntity.ok(FriendSummaryDto(member, isFriend))
     }
 
 

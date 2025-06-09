@@ -135,4 +135,26 @@ class FriendService(
     }
 
 
+
+    @Transactional
+    fun removeFriend(currentUserId: Long, targetId: Long) {
+        val sendMember = memberRepository.findById(currentUserId)
+            .orElseThrow { NoSuchElementException("회원이 존재하지 않습니다") }
+
+        val receiveMember = memberRepository.findById(targetId)
+            .orElseThrow { NoSuchElementException("대상 회원이 존재하지 않습니다") }
+
+        val friendInfoId1 = FriendInfoId(sendMember, receiveMember)
+        val friendInfoId2 = FriendInfoId(receiveMember, sendMember)
+
+        if (friendInfoRepository.existsById(friendInfoId1)) {
+            friendInfoRepository.deleteById(friendInfoId1)
+        }
+
+        if (friendInfoRepository.existsById(friendInfoId2)) {
+            friendInfoRepository.deleteById(friendInfoId2)
+        }
+    }
+
+
 }

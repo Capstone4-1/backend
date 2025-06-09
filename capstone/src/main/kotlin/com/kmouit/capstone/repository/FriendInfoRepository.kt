@@ -4,6 +4,7 @@ import com.kmouit.capstone.domain.FriendInfo
 import com.kmouit.capstone.domain.FriendInfoId
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 
 
@@ -47,6 +48,19 @@ interface FriendInfoRepository : JpaRepository<FriendInfo, FriendInfoId> {
                 "and f.friendInfoId.receiveMember.id = :receiveMemberId"
     )
     fun findFriendInfoBySendMemberIdAndReceiveMemberId(sendMemberId: Long, receiveMemberId: Long): FriendInfo?
+
+    @Query("""
+        SELECT CASE WHEN COUNT(f) > 0 THEN true ELSE false END
+        FROM FriendInfo f
+        WHERE 
+            (f.friendInfoId.sendMember.id = :userId1 AND f.friendInfoId.receiveMember.id = :userId2) OR
+            (f.friendInfoId.sendMember.id = :userId2 AND f.friendInfoId.receiveMember.id = :userId1)
+        AND f.status = 'ACCEPTED'
+    """)
+    fun areFriends(
+        @Param("userId1") userId1: Long,
+        @Param("userId2") userId2: Long
+    ): Boolean
 
 
 }

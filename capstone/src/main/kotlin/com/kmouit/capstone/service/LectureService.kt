@@ -51,9 +51,14 @@ class LectureService(
         return UUID.randomUUID().toString().substring(0, 8)
     }
 
+
+
     fun getAllLectureRooms(): List<LectureRoomSummaryDto> {
         return lectureRoomRepository.findAll()
-            .map { LectureRoomSummaryDto.from(it) }
+            .map { room ->
+                val markedCount = lectureMarkInfoRepository.countByLectureRoom_Id(room.id!!)
+                LectureRoomSummaryDto.from(room, markedCount)
+            }
     }
 
     fun getLectureRoomById(id: Long, memberId: Long): LectureRoomDto {
@@ -71,10 +76,11 @@ class LectureService(
     fun getPostsByLectureAndPostType(
         lectureId: Long,
         postType: LecturePostType,
-        currentUserId: Long?,
+        currentUserId: Long?
     ): List<LecturePostsDto> {
-        val posts =
-            lecturePostRepository.findWithMemberAndLectureRoomByLectureRoomIdAndLecturePostType(lectureId, postType)
+        val posts = lecturePostRepository
+            .findWithMemberAndLectureRoomByLectureRoomIdAndLecturePostType(lectureId, postType)
+
         return posts.map { it.toDto(currentUserId) }
     }
 

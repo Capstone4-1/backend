@@ -1,11 +1,13 @@
 package com.kmouit.capstone.api
 
 import com.kmouit.capstone.BoardType
+import com.kmouit.capstone.domain.CommentDto
 import com.kmouit.capstone.domain.LecturePostsDto
 import com.kmouit.capstone.domain.PostDto
 import com.kmouit.capstone.domain.SimplePostDto
 import com.kmouit.capstone.jwt.CustomUserDetails
 import com.kmouit.capstone.repository.MemberRepository
+import com.kmouit.capstone.service.CommentService
 import com.kmouit.capstone.service.PostService
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.*
 class PostController(
     private val postService: PostService,
     private val memberRepository: MemberRepository,
+    private val commentService: CommentService
 ) {
 
     @PostMapping("/{postId}/comments")
@@ -97,14 +100,60 @@ class PostController(
     }
 
 
+    /**
+     * 게시글 하나 가져오기
+     */
     @GetMapping("/{id}")
     fun responseGetPost(
         @AuthenticationPrincipal userDetails: CustomUserDetails,
         @PathVariable id: Long,
-    ): ResponseEntity<PostDto> {
+    ): ResponseEntity<Map<String, Any>> {
         val dto = postService.getPostDetail(id, userDetails.getId())
-        return ResponseEntity.ok(dto)
+        return ResponseEntity.ok(
+            mapOf(
+                "message" to "게시글 detail 조회 성공",
+                "dto" to dto
+            )
+        )
     }
+
+    /**
+     * 댓글만 가져오기
+     */
+    @GetMapping("/{postId}/comments")
+    fun getTopLevelComments(
+        @PathVariable postId: Long,
+        @AuthenticationPrincipal user: CustomUserDetails
+    ): ResponseEntity<Map<String, Any>> {
+        val comments = commentService.getTopLevelComments(postId, user.getId())
+
+        return ResponseEntity.ok(
+            mapOf(
+                "message" to "최상위 댓글 조회 성공",
+                "comments" to comments
+            )
+        )
+    }
+
+    /**
+     * 대댓글 가져오기
+     */
+    @GetMapping("/{commentId}/replies")
+    fun getReplies(
+        @PathVariable commentId: Long,
+        @AuthenticationPrincipal user: CustomUserDetails
+    ): ResponseEntity<Map<String, Any>> {
+        val replies = commentService.getReplies(commentId, user.getId())
+        return ResponseEntity.ok(
+            mapOf(
+                "message" to "대댓글 조회 성공",
+                "replies" to replies
+            )
+        )
+    }
+
+
+
 
     @GetMapping("/{lectureId}/{id}")
     fun responseGetLecturePost(
@@ -191,6 +240,7 @@ data class PostRequestDto(
 
 data class CommentRequestDto(
     var content: String,
+    val parentId: Long? = null
 )
 
 data class LecturePostRequestDto(

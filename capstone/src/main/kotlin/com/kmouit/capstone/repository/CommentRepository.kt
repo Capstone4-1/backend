@@ -14,4 +14,13 @@ interface CommentRepository : JpaRepository<Comments, Long> {
     @Query("SELECT c.post.id AS postId, COUNT(c.id) AS cnt FROM Comments c WHERE c.post.id IN :postIds GROUP BY c.post.id")
     fun countByPostIds(@Param("postIds") postIds: List<Long>): Map<Long, Long>
 
+
+    @Query("""
+    SELECT c FROM Comments c
+    JOIN FETCH c.member
+    WHERE c.parent.id = :parentId
+    ORDER BY c.createdDate ASC
+""")
+    fun findRepliesWithMemberByParentId(@Param("parentId") parentId: Long): List<Comments>
+
 }

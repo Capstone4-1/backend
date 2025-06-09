@@ -2,6 +2,7 @@ package com.kmouit.capstone.service
 
 import com.kmouit.capstone.BoardType
 import com.kmouit.capstone.LecturePostType
+import com.kmouit.capstone.NoticeType
 import com.kmouit.capstone.api.CommentRequestDto
 import com.kmouit.capstone.api.CrawledNoticeDto
 import com.kmouit.capstone.api.LecturePostRequestDto
@@ -39,29 +40,42 @@ class PostService(
 ) {
     @Transactional
     fun createComment(requestDto: CommentRequestDto, postId: Long, userDetail: Member) {
-
         val member = memberRepository.findMemberAndNoticesById(userDetail.id!!)
             ?: throw (NoSuchElementException("회원을 찾을 수 없습니다."))
+
         val post = postRepository.findById(postId).orElseThrow {
             NoSuchElementException("게시글을 찾을 수 없습니다.")
         }
+
+        // 🔹 parent 댓글이 있으면 찾아서 연결
+        val parent: Comments? = requestDto.parentId?.let {
+            commentRepository.findById(it).orElseThrow {
+                NoSuchElementException("부모 댓글을 찾을 수 없습니다.")
+            }
+        }
+
         val comment = Comments(
             content = requestDto.content,
             createdDate = LocalDateTime.now(),
             member = member,
             post = post,
+            parent = parent,
             likeCount = 0
         )
 
-        post.comments.add(comment)
-
-        if (post.member!!.id == member.id) {
-            return
+        // 🔹 부모가 없으면 최상위 댓글이므로 post에 직접 연결
+        if (parent == null) {
+            post.comments.add(comment)
+        } else {
+            parent.replies.add(comment) // 생략해도 Cascade로 반영되긴 함
         }
-        noticeService.createCommentNotice(
-            post, member
-        )
+
+        commentRepository.save(comment)
+        // 본인이 쓴 글이면 알림 생성 생략
+        if (post.member?.id == member.id) return
+        noticeService.createCommentNotice(post, member)
     }
+
 
     @Transactional
     fun createPost(requestDto: PostRequestDto, member: Member) {
@@ -90,7 +104,6 @@ class PostService(
 
     @Transactional
     fun createLecturePost(dto: LecturePostRequestDto, member: Member) {
-        // 예시 구현
         val lectureRoom = lectureRoomRepository.findById(dto.lectureId)
             .orElseThrow { IllegalArgumentException("해당 강의가 존재하지 않습니다.") }
 
@@ -100,6 +113,7 @@ class PostService(
         if (!originalUrl.isNullOrBlank()) {
             thumbnailUrl = uploadService.generateThumbnailFromOriginalUrl(originalUrl)
         }
+
         val post = LecturePosts(
             createdDate = LocalDateTime.now(),
             title = dto.title,
@@ -110,9 +124,20 @@ class PostService(
             lectureRoom = lectureRoom,
             thumbnailUrl = thumbnailUrl
         )
-
         lecturePostRepository.save(post)
+
+        // 📢 교수에게 알림 전송 (본인이 글쓴 경우 제외)
+        val professor = lectureRoom.createBy
+        if (professor != null && professor.id != member.id) {
+            noticeService.createLecturePostNotice(
+                professor = professor,
+                postTitle = post.title ?: "제목 없음",
+                lectureRoomId = lectureRoom.id!!,
+                postId = post.id!!
+            )
+        }
     }
+
 
     @Transactional
     fun saveCrawledNotices(noticeList: List<CrawledNoticeDto>, memberId: Long) {
