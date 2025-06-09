@@ -1,6 +1,7 @@
 package com.kmouit.capstone.api
 
 import com.kmouit.capstone.BoardType
+import com.kmouit.capstone.domain.LecturePostsDto
 import com.kmouit.capstone.domain.PostDto
 import com.kmouit.capstone.domain.SimplePostDto
 import com.kmouit.capstone.jwt.CustomUserDetails
@@ -102,6 +103,16 @@ class PostController(
         @PathVariable id: Long,
     ): ResponseEntity<PostDto> {
         val dto = postService.getPostDetail(id, userDetails.getId())
+        return ResponseEntity.ok(dto)
+    }
+
+    @GetMapping("/{lectureId}/{id}")
+    fun responseGetLecturePost(
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+        @PathVariable id: Long,
+        @PathVariable lectureId: Long,
+    ): ResponseEntity<LecturePostsDto> {
+        val dto = postService.getLecturePostDetail(id, userDetails.getId())
         return ResponseEntity.ok(dto)
     }
 

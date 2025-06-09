@@ -24,4 +24,15 @@ interface LecturePostRepository : JpaRepository<LecturePosts, Long> {
         @Param("lectureRoomId") lectureRoomId: Long,
         @Param("postType") postType: LecturePostType,
     ): List<LecturePosts>
+
+
+    @Query(
+        """
+        SELECT lp FROM LecturePosts lp
+        JOIN FETCH lp.member
+        JOIN FETCH lp.lectureRoom
+        WHERE lp.id = :id
+        """
+    )
+    fun findWithMemberAndLectureRoomById(@Param("id") id: Long): LecturePosts?
 }

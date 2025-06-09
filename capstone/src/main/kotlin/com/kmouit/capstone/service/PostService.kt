@@ -162,6 +162,15 @@ class PostService(
         return post.toDto(currentUserId)
     }
 
+    @Transactional
+    fun getLecturePostDetail(id: Long, currentUserId: Long?):
+            LecturePostsDto {
+        val post = lecturePostRepository.findWithMemberAndLectureRoomById(id)
+            ?: throw NoSuchElementException("게시글 없음")
+        post.viewCount += 1
+        return post.toDto(currentUserId)
+    }
+
 
 
     fun getSummary(boardType: BoardType?, currentUserId: Long): List<SimplePostDto> {
