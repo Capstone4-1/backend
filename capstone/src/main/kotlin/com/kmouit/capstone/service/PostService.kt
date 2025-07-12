@@ -2,7 +2,6 @@ package com.kmouit.capstone.service
 
 import com.kmouit.capstone.BoardType
 import com.kmouit.capstone.LecturePostType
-import com.kmouit.capstone.NoticeType
 import com.kmouit.capstone.api.CommentRequestDto
 import com.kmouit.capstone.api.CrawledNoticeDto
 import com.kmouit.capstone.api.LecturePostRequestDto
@@ -18,7 +17,6 @@ import org.springframework.data.domain.Pageable
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.security.PrivateKey
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.NoSuchElementException
@@ -36,8 +34,10 @@ class PostService(
     private val s3UploadService: S3UploadService,
     private val commentRepository: CommentRepository,
     private val lectureRoomRepository: LectureRoomRepository,
-    private val lecturePostRepository: LecturePostRepository
+    private val lecturePostRepository: LecturePostRepository,
 ) {
+
+
     @Transactional
     fun createComment(requestDto: CommentRequestDto, postId: Long, userDetail: Member) {
         val member = memberRepository.findMemberAndNoticesById(userDetail.id!!)
@@ -141,7 +141,8 @@ class PostService(
 
     @Transactional
     fun saveCrawledNotices(noticeList: List<CrawledNoticeDto>, memberId: Long) {
-        val member = memberRepository.findById(memberId).orElseThrow { NoSearchMemberException(HttpStatus.NOT_FOUND, "존재하지 않는 회원") }
+        val member = memberRepository.findById(memberId)
+            .orElseThrow { NoSearchMemberException(HttpStatus.NOT_FOUND, "존재하지 않는 회원") }
         for (crawledNoticeDto in noticeList) {
             var originalUrlOnS3: String? = null
             var thumbnailUrl: String? = null
@@ -178,7 +179,6 @@ class PostService(
     }
 
 
-
     @Transactional
     fun getPostDetail(id: Long, currentUserId: Long?): PostDto {
         val post = postRepository.findPostWithDetails(id)
@@ -198,24 +198,47 @@ class PostService(
     }
 
 
-
-    fun getSummary(boardType: BoardType?, currentUserId: Long): List<SimplePostDto> {
+    fun getSummary(
+        boardType: BoardType?,
+        currentUserId: Long,
+        pageSize :Int = 5,
+        pageNumber: Int = 0,
+    ): List<SimplePostDto> {
+        println("디버깅:${pageSize}")
         if (boardType == null) throw IllegalArgumentException("게시판 타입이 null입니다.")
-        val pageable = PageRequest.of(0, 3)
+        val pageable = PageRequest.of(pageNumber, pageSize)  // ✅ 넘어온 pageSize 사용
 
         val posts = postRepository.findTopByBoardTypeWithMember(boardType, pageable)
 
         return posts.map { post ->
-            val commentCount = commentRepository.countByPostId(post.id!!) // 🔹 별도 count 쿼리 (1번)
+            val commentCount = commentRepository.countByPostId(post.id!!) // 🔹 별도 count 쿼리
             post.toSimpleDto(currentUserId, commentCount)
         }
     }
 
+
+    fun getMultipleSummaries(
+        boardTypes: List<BoardType>,
+        userId: Long,
+        pageSize: Int
+    ): List<SimplePostDto> {
+        val pageable = PageRequest.of(0, pageSize * boardTypes.size)
+        val posts = postRepository.findTopByBoardTypesWithMember(boardTypes, pageable)
+        return posts
+            .map { post ->
+                val commentCount = commentRepository.countByPostId(post.id!!)
+                post.toSimpleDto(userId, commentCount)
+            }
+            .sortedByDescending { it.createdDate }
+            .take(pageSize)
+    }
+
     fun findPostDtoByBoardType(
+        currentUserId: Long,
         boardType: String,
         pageable: Pageable,
         filter: String?,
-        query: String?
+        query: String?,
     ): Page<SimplePostDto> {
         val boardEnum = BoardType.from(boardType) ?: throw IllegalArgumentException("유효하지 않은 게시판")
 
@@ -232,13 +255,13 @@ class PostService(
 
         return postPage.map { post ->
             val commentCount = commentRepository.countByPostId(post.id!!)
-            post.toSimpleDto(0, commentCount)
+            post.toSimpleDto(currentUserId, commentCount)
         }
     }
 
 
     @Transactional
-    fun saveBoardMarkInfo(id: Long, boardType: String, ) {
+    fun saveBoardMarkInfo(id: Long, boardType: String) {
         val member = memberRepository.findById(id)
             .orElseThrow { NoSuchElementException("존재하지 않는 회원") }
 
@@ -256,7 +279,6 @@ class PostService(
 
         boardMarkInfoRepository.save(boardMarkInfo)
     }
-
 
 
     fun findMyFavorites(memberId: Long): List<BoardMarkInfoDto> {
@@ -283,7 +305,10 @@ class PostService(
 
     fun checkBoardMark(boardType: String, id: Long): Boolean {
         val member = memberRepository.findById(id).orElseThrow { NoSuchElementException("존재하지 않는 회원") }
-        return boardMarkInfoRepository.existsByMemberAndBoardType(member, BoardType.from(boardType.uppercase(Locale.getDefault()))!!)
+        return boardMarkInfoRepository.existsByMemberAndBoardType(
+            member,
+            BoardType.from(boardType.uppercase(Locale.getDefault()))!!
+        )
     }
 
     @Transactional
@@ -301,7 +326,6 @@ class PostService(
         // ✅ 게시글 DB 삭제
         postRepository.delete(post)
     }
-
 
 
 

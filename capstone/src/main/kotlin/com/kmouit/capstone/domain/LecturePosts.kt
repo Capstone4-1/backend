@@ -26,6 +26,9 @@ class LecturePosts(
     @Enumerated(EnumType.STRING)
     var lecturePostType : LecturePostType? = null,
 
+    @OneToMany(mappedBy = "lecturePost", fetch = FetchType.LAZY, cascade = [CascadeType.ALL])
+    var comments: MutableList<Comments> = mutableListOf(),
+
     var likeCount: Int = 0, // 하; 변수명 like로 했다가 삽질 2시간함; Mysql 예약어였음
     var viewCount: Int = 0,
 

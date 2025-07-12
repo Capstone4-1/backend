@@ -49,6 +49,8 @@ data class PostDto(
     var isAuthor: Boolean
 )
 fun Posts.toDto(currentUserId: Long?): PostDto {
+    val isSecretBoard = this.boardType == BoardType.SECRET
+
     return PostDto(
         id = this.id!!,
         title = this.title ?: "",
@@ -56,22 +58,21 @@ fun Posts.toDto(currentUserId: Long?): PostDto {
         content = this.content,
         likeCount = this.likeCount,
         boardType = this.boardType!!,
-        writerNickname = this.member?.nickname ?: "탈퇴회원",
-        writerProfileImageUrl = this.member?.profileImageUrl,
-        writerProfileThumbnails = this.member?.thumbnailUrl,
-        writerId = this.member?.id,
+        writerNickname = if (isSecretBoard) "익명" else this.member?.nickname ?: "탈퇴회원",
+        writerProfileImageUrl = if (isSecretBoard) null else this.member?.profileImageUrl,
+        writerProfileThumbnails = if (isSecretBoard) null else this.member?.thumbnailUrl,
+        writerId = if (isSecretBoard) null else this.member?.id,
         imageUrls = this.imageUrls,
         price = this.price,
         viewCount = this.viewCount,
         isAuthor = (currentUserId != null && currentUserId == this.member?.id)
     )
 }
-
 data class SimplePostDto(
     val id: Long,
     val title: String,
     val createdDate: LocalDateTime?,
-    val commentCount: Int,
+    val commentCount: Long,
     val likeCount: Int,
     val boardType: BoardType,
     val writerNickname: String,
@@ -88,7 +89,7 @@ fun Posts.toSimpleDto(currentUserId: Long?, commentCount: Long): SimplePostDto {
         id = this.id!!,
         title = this.title!!,
         createdDate = this.createdDate,
-        commentCount = comments.size,
+        commentCount = commentCount,
         likeCount = this.likeCount,
         boardType = this.boardType!!,
         writerNickname = if (isSecretBoard) "익명" else this.member?.nickname ?: "탈퇴회원",

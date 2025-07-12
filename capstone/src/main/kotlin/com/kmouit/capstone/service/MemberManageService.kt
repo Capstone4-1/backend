@@ -137,4 +137,8 @@ class MemberManageService(
         member.nickname = trimmed
     }
 
+    fun checkPassword(member: Member, rawPassword: String): Boolean {
+        return passwordEncoder.matches(rawPassword, member.password)
+    }
+
 }

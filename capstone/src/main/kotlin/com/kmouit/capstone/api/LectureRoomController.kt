@@ -2,6 +2,7 @@ package com.kmouit.capstone.api
 
 import com.kmouit.capstone.LecturePostType
 import com.kmouit.capstone.jwt.CustomUserDetails
+import com.kmouit.capstone.service.CommentService
 import com.kmouit.capstone.service.LectureService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*
 class LectureRoomController(
     private val lectureService: LectureService,
     private val postService: LectureService,
+    private val commentService: CommentService
 ) {
 
     @PreAuthorize("hasRole('ADMIN') or hasRole('PROFESSOR')")
@@ -30,6 +32,18 @@ class LectureRoomController(
                 "data" to dto
             )
         )
+    }
+    /**
+     * 이거 임
+     */
+    @PostMapping("/{lecturePostId}/comments")
+    fun createCommentForLecturePost(
+        @PathVariable lecturePostId: Long,
+        @RequestBody requestDto: CommentRequestDto,
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+    ): ResponseEntity<Map<String, String>> {
+        commentService.createCommentForLecturePost(lecturePostId, requestDto, userDetails.member)
+        return ResponseEntity.ok(mapOf("message" to "강의게시글 댓글 등록 성공"))
     }
 
     @GetMapping("/{id}")

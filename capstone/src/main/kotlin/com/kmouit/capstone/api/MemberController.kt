@@ -27,6 +27,23 @@ class MemberController(
     private val friendInfoRepository: FriendInfoRepository
 ) {
 
+    @PostMapping("/verify-password")
+    fun verifyPassword(
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+        @RequestBody request: Map<String, String>
+    ): ResponseEntity<Map<String, Boolean>> {
+        val rawPassword = request["password"]
+            ?: return ResponseEntity.badRequest().body(mapOf("message" to false))
+
+        val member = userDetails.member
+        return if (memberManageService.checkPassword(member, rawPassword)) {
+            ResponseEntity.ok(mapOf("message" to true))
+        } else {
+            ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapOf("message" to false))
+        }
+    }
+
+
     /**
      *  새로고침시 정보 불러오기
      */

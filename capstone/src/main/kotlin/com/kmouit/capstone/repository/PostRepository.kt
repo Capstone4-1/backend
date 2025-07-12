@@ -95,4 +95,14 @@ interface PostRepository : JpaRepository<Posts, Long> {
     )
     fun findTopLevelCommentsByPostId(@Param("postId") postId: Long): List<Comments>
 
+    @Query("""
+    SELECT p FROM Posts p
+    JOIN FETCH p.member
+    WHERE p.boardType IN :boardTypes
+    ORDER BY p.createdDate DESC
+""")
+    fun findTopByBoardTypesWithMember(
+        @Param("boardTypes") boardTypes: List<BoardType>,
+        pageable: Pageable
+    ): List<Posts>
 }

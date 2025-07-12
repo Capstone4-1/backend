@@ -4,6 +4,7 @@ import com.kmouit.capstone.BoardType
 import com.kmouit.capstone.NoticeInfoStatus.READ
 import com.kmouit.capstone.NoticeType
 import com.kmouit.capstone.NoticeType.NEW_COMMENT
+import com.kmouit.capstone.domain.LecturePosts
 import com.kmouit.capstone.domain.Member
 import com.kmouit.capstone.domain.Notice
 import com.kmouit.capstone.domain.Posts
@@ -80,6 +81,17 @@ class NoticeService(
         professor.addNotice(notice)
     }
 
+    fun createCommentNoticeForLecturePost(lecturePost: LecturePosts, commenter: Member) {
+        val notice = Notice().apply {
+            this.date = LocalDateTime.now()
+            this.content = "'${lecturePost.title}' 글에 새 댓글이 달렸습니다."
+            this.noticeType = NoticeType.NEW_COMMENT
+            this.targetUrl = "/lecture/${lecturePost.lectureRoom?.id}/post/${lecturePost.id}"
+            this.member = lecturePost.member!!
+        }
+        lecturePost.member?.addNotice(notice)
+        noticeRepository.save(notice)
+    }
 
 
 }

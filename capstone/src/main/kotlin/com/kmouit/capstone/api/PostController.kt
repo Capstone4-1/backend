@@ -1,12 +1,9 @@
 package com.kmouit.capstone.api
 
 import com.kmouit.capstone.BoardType
-import com.kmouit.capstone.domain.CommentDto
 import com.kmouit.capstone.domain.LecturePostsDto
-import com.kmouit.capstone.domain.PostDto
 import com.kmouit.capstone.domain.SimplePostDto
 import com.kmouit.capstone.jwt.CustomUserDetails
-import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.service.CommentService
 import com.kmouit.capstone.service.PostService
 import org.springframework.data.domain.Page
@@ -22,8 +19,7 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping("api/post")
 class PostController(
     private val postService: PostService,
-    private val memberRepository: MemberRepository,
-    private val commentService: CommentService
+    private val commentService: CommentService,
 ) {
 
     @PostMapping("/{postId}/comments")
@@ -56,10 +52,11 @@ class PostController(
         postService.createLecturePost(requestDto, userDetails.member)
         return ResponseEntity.ok(mapOf("message" to "lecture-post-up 성공"))
     }
+
     @DeleteMapping("/{postId}")
     fun deletePost(
         @PathVariable postId: Long,
-        @AuthenticationPrincipal userDetails: CustomUserDetails
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
     ): ResponseEntity<Map<String, String>> {
         postService.deletePost(postId, userDetails.member)
         return ResponseEntity.ok(mapOf("message" to "게시글 삭제 성공"))
@@ -79,7 +76,7 @@ class PostController(
         @AuthenticationPrincipal userDetails: CustomUserDetails,
     ): ResponseEntity<Map<String, Any>> {
         val pageable: Pageable = PageRequest.of(page, size)
-        val resultPage: Page<SimplePostDto> = postService.findPostDtoByBoardType(boardType, pageable, filter, query)
+        val resultPage: Page<SimplePostDto> = postService.findPostDtoByBoardType(userDetails.getId(),boardType, pageable, filter, query)
 
         val response = PostPageResponseDto(
             posts = resultPage.content,
@@ -123,7 +120,7 @@ class PostController(
     @GetMapping("/{postId}/comments")
     fun getTopLevelComments(
         @PathVariable postId: Long,
-        @AuthenticationPrincipal user: CustomUserDetails
+        @AuthenticationPrincipal user: CustomUserDetails,
     ): ResponseEntity<Map<String, Any>> {
         val comments = commentService.getTopLevelComments(postId, user.getId())
 
@@ -135,13 +132,29 @@ class PostController(
         )
     }
 
+
+    @GetMapping("/lecture/{lecturePostId}/comments")
+    fun getTopLevelCommentsForLecturePost(
+        @PathVariable lecturePostId: Long,
+        @AuthenticationPrincipal user: CustomUserDetails,
+    ): ResponseEntity<Map<String, Any>> {
+        val comments = commentService.getTopLevelCommentsForLecturePost(lecturePostId, user.getId())
+
+        return ResponseEntity.ok(
+            mapOf(
+                "message" to "강의 게시글 댓글 조회 성공",
+                "comments" to comments
+            )
+        )
+    }
+
     /**
      * 대댓글 가져오기
      */
     @GetMapping("/{commentId}/replies")
     fun getReplies(
         @PathVariable commentId: Long,
-        @AuthenticationPrincipal user: CustomUserDetails
+        @AuthenticationPrincipal user: CustomUserDetails,
     ): ResponseEntity<Map<String, Any>> {
         val replies = commentService.getReplies(commentId, user.getId())
         return ResponseEntity.ok(
@@ -151,8 +164,6 @@ class PostController(
             )
         )
     }
-
-
 
 
     @GetMapping("/{lectureId}/{id}")
@@ -165,20 +176,43 @@ class PostController(
         return ResponseEntity.ok(dto)
     }
 
-    @GetMapping("/summary-multiple")
-    fun getMultipleBoardSummaries(
+
+    @PostMapping("/summary-multi")
+    fun getMultiBoardSummaries(
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+        @RequestBody request: SummaryRequest
+    ): ResponseEntity<Map<String, Any>> {
+        val userId = userDetails.getId()
+        val summaries = postService.getMultipleSummaries(request.types.map { BoardType.from(it)!! }, userId, request.pageSize)
+
+        return ResponseEntity.ok(
+            mapOf(
+                "message" to "게시판 통합 요약 조회 성공",
+                "Posts" to summaries
+            )
+        )
+    }
+
+    data class SummaryRequest(
+        val types: List<String>,
+        val pageSize: Int = 5
+    )
+
+
+    @GetMapping("/{boardType}/summary")
+    fun getBoardSummary(
+        @PathVariable boardType: String,
+        @RequestParam(defaultValue = "5") pageSize: Int,
         @AuthenticationPrincipal userDetails: CustomUserDetails,
     ): ResponseEntity<Map<String, Any>> {
-        val result = mapOf(
-            "message" to "게시판 전체 요약 정보 조회 성공",
-            "Posts_notice_c" to postService.getSummary(BoardType.from("NOTICE_C"), userDetails.getId()),
-            "Posts_free" to postService.getSummary(BoardType.from("FREE"), userDetails.getId()),
-            "Posts_secret" to postService.getSummary(BoardType.from("SECRET"), userDetails.getId()),
-            "Posts_review" to postService.getSummary(BoardType.from("REVIEW"), userDetails.getId()),
-            "Posts_market" to postService.getSummary(BoardType.from("MARKET"), userDetails.getId()),
-            "Posts_notice" to postService.getSummary(BoardType.from("NOTICE"), userDetails.getId())
+        val summary = postService.getSummary(BoardType.from(boardType), userDetails.getId(), pageSize)
+        println("디버깅:${pageSize}")
+        return ResponseEntity.ok(
+            mapOf(
+                "Posts" to summary,
+                "message" to "${boardType}게시판 요약 정보 조회 성공"
+            )
         )
-        return ResponseEntity.ok(result)
     }
 
 
@@ -211,7 +245,7 @@ class PostController(
     @DeleteMapping("/favorites")
     fun responseDeleteBoardMark(
         @AuthenticationPrincipal userDetails: CustomUserDetails,
-        @RequestParam boardType: String
+        @RequestParam boardType: String,
     ): ResponseEntity<Map<String, String>> {
         postService.deleteBoardMarkInfo(userDetails.getId(), boardType)
         return ResponseEntity.ok(mapOf("message" to "즐겨찾기 삭제 성공"))
@@ -240,7 +274,7 @@ data class PostRequestDto(
 
 data class CommentRequestDto(
     var content: String,
-    val parentId: Long? = null
+    val parentId: Long? = null,
 )
 
 data class LecturePostRequestDto(
@@ -248,5 +282,5 @@ data class LecturePostRequestDto(
     val boardType: String,  // LECTURE_Q, LECTURE_N, LECTURE_REF, LECTURE_R
     val title: String,
     val content: String,
-    val imageUrls: String? = null
+    val imageUrls: String? = null,
 )
