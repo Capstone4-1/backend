@@ -276,6 +276,11 @@ class MemberController(
         )
     }
 
+    @DeleteMapping
+    fun withdraw( @AuthenticationPrincipal userDetails: CustomUserDetails,){
+        memberManageService.withdraw(userDetails.member)
+    }
+
     /**
      * 로그아웃
      */

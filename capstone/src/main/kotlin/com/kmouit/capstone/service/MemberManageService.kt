@@ -19,6 +19,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
+import java.util.concurrent.Executors
 
 
 @Service
@@ -155,6 +156,7 @@ class MemberManageService(
         }
     }
 
+    @Transactional
     fun resetEmail(member: Member, newEmail: String) {
         val targetMember= memberRepository.findById(member.id!!).orElseThrow { NoSearchMemberException(HttpStatus.NOT_FOUND, "존재하지않는 회원") }
         try {
@@ -163,6 +165,14 @@ class MemberManageService(
             throw Exception("이메일 재설정 오류")
         }
 
+    }
+    @Transactional
+    fun withdraw(member: Member) {
+        try {
+            memberRepository.delete(member)
+        }catch ( e : Exception){
+            throw Exception("탈퇴 오류")
+        }
     }
 
 }
