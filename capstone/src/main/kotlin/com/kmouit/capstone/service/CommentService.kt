@@ -1,17 +1,16 @@
 package com.kmouit.capstone.service
 
+import com.kmouit.capstone.BoardType
 import com.kmouit.capstone.api.CommentRequestDto
 import com.kmouit.capstone.domain.CommentDto
 import com.kmouit.capstone.domain.Comments
 import com.kmouit.capstone.domain.Member
 import com.kmouit.capstone.domain.toDto
 import com.kmouit.capstone.exception.CustomAccessDeniedException
-import com.kmouit.capstone.jwt.CustomUserDetails
 import com.kmouit.capstone.repository.CommentRepository
 import com.kmouit.capstone.repository.LecturePostRepository
 import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.repository.PostRepository
-import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -45,10 +44,15 @@ class CommentService(
      * 최상위 댓글 가져오기
      */
     fun getTopLevelComments(postId: Long, currentUserId: Long?): List<CommentDto> {
+        val post = postRepository.findById(postId).orElseThrow { NoSuchElementException("게시글 존재 x") }
+        var isSecret  = false
+        if(post.boardType == BoardType.SECRET){
+            isSecret = true
+        }
         val comments = postRepository.findTopLevelCommentsByPostId(postId)
 
         return comments.filter { it.parent == null }.sortedByDescending { it.createdDate }
-            .map { it.toDto(currentUserId) }
+            .map { it.toDto(currentUserId, isSecret) }
     }
 
     fun getTopLevelCommentsForLecturePost(lecturePostId: Long, currentUserId: Long?): List<CommentDto> {
@@ -58,15 +62,22 @@ class CommentService(
         return lecturePost.comments
             .filter { it.parent == null }
             .sortedByDescending { it.createdDate }
-            .map { it.toDto(currentUserId) }
+            .map { it.toDto(currentUserId, false) }
     }
 
     fun getReplies(parentCommentId: Long, currentUserId: Long?): List<CommentDto> {
+        val parentComment =
+            commentRepository.findById(parentCommentId).orElseThrow { NoSuchElementException("존재하지 않는 댓글") }
+
+        var isSecret = false
+        if (parentComment.post!!.boardType== BoardType.SECRET){
+            isSecret = true
+        }
         val replies = commentRepository.findRepliesWithMemberByParentId(parentCommentId)
 
         return replies // children: List<Comments>
             .sortedBy { it.createdDate }
-            .map { it.toDto(currentUserId) }
+            .map { it.toDto(currentUserId, isSecret) }
     }
 
     /**

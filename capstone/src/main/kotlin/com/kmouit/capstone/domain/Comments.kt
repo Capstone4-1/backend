@@ -43,17 +43,18 @@ data class CommentDto(
     var hasChildren: Boolean //
 )
 
-fun Comments.toDto(currentUserId: Long?): CommentDto {
+fun Comments.toDto(currentUserId: Long?, isAnonymous: Boolean): CommentDto {
+
     return CommentDto(
         id = this.id ?: throw IllegalStateException("댓글 ID가 null입니다."),
         content = this.content.orEmpty(),
-        writerId = this.member?.id ?: -1,
-        writerNickname = this.member?.nickname ?: "탈퇴회원",
-        writerProfileImageUrl = this.member?.profileImageUrl,
-        writerProfileThumbnails = this.member?.thumbnailUrl,
+        writerId = if (isAnonymous) -1L else this.member?.id ?: -1L,
+        writerNickname = if (isAnonymous) "익명" else this.member?.nickname ?: "탈퇴회원",
+        writerProfileImageUrl = if (isAnonymous) null else this.member?.profileImageUrl,
+        writerProfileThumbnails = if (isAnonymous) null else this.member?.thumbnailUrl,
         createdDate = this.createdDate ?: LocalDateTime.now(),
         likeCount = this.likeCount,
-        isAuthor = (currentUserId != null && currentUserId == this.member?.id),
+        isAuthor = (!isAnonymous && currentUserId != null && currentUserId == this.member?.id),
         hasChildren = this.replies.isNotEmpty()
     )
 }
