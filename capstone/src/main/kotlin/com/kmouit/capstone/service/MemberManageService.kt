@@ -11,8 +11,10 @@ import com.kmouit.capstone.dtos.JoinForm
 import com.kmouit.capstone.dtos.NoticeDto
 import com.kmouit.capstone.exception.DuplicateUsernameException
 import com.kmouit.capstone.exception.FileSizeLimitExceededException
+import com.kmouit.capstone.exception.NoSearchMemberException
 import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.repository.TodoRepository
+import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -139,6 +141,28 @@ class MemberManageService(
 
     fun checkPassword(member: Member, rawPassword: String): Boolean {
         return passwordEncoder.matches(rawPassword, member.password)
+    }
+
+
+    @Transactional
+    fun resetPassword(member: Member, newPassword: String) {
+        val targetMember= memberRepository.findById(member.id!!).orElseThrow { NoSearchMemberException(HttpStatus.NOT_FOUND, "존재하지않는 회원") }
+        try {
+            val encodedNewPassword = passwordEncoder.encode(newPassword)
+            targetMember.password = encodedNewPassword
+        } catch ( e : Exception){
+            throw Exception("비밀번호 재설정 오류")
+        }
+    }
+
+    fun resetEmail(member: Member, newEmail: String) {
+        val targetMember= memberRepository.findById(member.id!!).orElseThrow { NoSearchMemberException(HttpStatus.NOT_FOUND, "존재하지않는 회원") }
+        try {
+            targetMember.email = newEmail
+        } catch ( e : Exception){
+            throw Exception("이메일 재설정 오류")
+        }
+
     }
 
 }

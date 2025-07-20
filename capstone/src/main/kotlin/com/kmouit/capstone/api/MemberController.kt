@@ -24,13 +24,13 @@ class MemberController(
     private val memberRepository: MemberRepository,
     private val memberManageService: MemberManageService,
     private val todoRepository: TodoRepository,
-    private val friendInfoRepository: FriendInfoRepository
+    private val friendInfoRepository: FriendInfoRepository,
 ) {
 
     @PostMapping("/verify-password")
     fun verifyPassword(
         @AuthenticationPrincipal userDetails: CustomUserDetails,
-        @RequestBody request: Map<String, String>
+        @RequestBody request: Map<String, String>,
     ): ResponseEntity<Map<String, Boolean>> {
         val rawPassword = request["password"]
             ?: return ResponseEntity.badRequest().body(mapOf("message" to false))
@@ -41,6 +41,28 @@ class MemberController(
         } else {
             ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapOf("message" to false))
         }
+    }
+
+    @PostMapping("/reset-password")
+    fun resetPassword(
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+        @RequestBody request: Map<String, String>,
+    ): ResponseEntity<Map<String, String>> {
+        val rawNewPassword = request["newPassword"]
+            ?: return ResponseEntity.badRequest().body(mapOf("message" to "passWord 재설정 실패"))
+        memberManageService.resetPassword(userDetails.member, rawNewPassword)
+        return ResponseEntity.ok(mapOf("message" to "passWord 재설정 완료"))
+    }
+
+    @PostMapping("/reset-email")
+    fun resetEmail(
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+        @RequestBody request: Map<String, String>,
+    ): ResponseEntity<Map<String, String>> {
+        val newEmail = request["newEmail"]
+            ?: return ResponseEntity.badRequest().body(mapOf("message" to "Email 재설정 실패"))
+        memberManageService.resetEmail(userDetails.member, newEmail)
+        return ResponseEntity.ok(mapOf("message" to "Email 재설정 완료"))
     }
 
 
