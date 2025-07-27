@@ -50,10 +50,10 @@ class CommentService(
             isSecret = true
         }
         val comments = postRepository.findTopLevelCommentsByPostId(postId)
-
         return comments.filter { it.parent == null }.sortedByDescending { it.createdDate }
             .map { it.toDto(currentUserId, isSecret) }
     }
+
 
     fun getTopLevelCommentsForLecturePost(lecturePostId: Long, currentUserId: Long?): List<CommentDto> {
         val lecturePost = lecturePostRepository.findById(lecturePostId)

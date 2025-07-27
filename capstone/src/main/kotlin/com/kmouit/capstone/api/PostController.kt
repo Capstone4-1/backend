@@ -275,6 +275,7 @@ data class PostRequestDto(
 data class CommentRequestDto(
     var content: String,
     val parentId: Long? = null,
+    val targetUrl :String? = null
 )
 
 data class LecturePostRequestDto(

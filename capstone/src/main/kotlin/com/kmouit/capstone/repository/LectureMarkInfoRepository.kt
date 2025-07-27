@@ -10,20 +10,24 @@ import org.springframework.stereotype.Repository
 
 
 @Repository
-interface LectureMarkInfoRepository :JpaRepository < LectureMarkInfo, Long> {
+interface LectureMarkInfoRepository : JpaRepository<LectureMarkInfo, Long> {
     fun findByMemberAndLectureRoom(member: Member, room: LectureRoom): LectureMarkInfo?
     fun existsByMemberAndLectureRoom(member: Member, room: LectureRoom): Boolean
 
-    @Query("""
+    @Query(
+        """
     SELECT lmi FROM LectureMarkInfo lmi
     JOIN FETCH lmi.lectureRoom lr
     JOIN FETCH lr.createBy
     WHERE lmi.member = :member
-""")
+"""
+    )
     fun findWithLectureRoomAndProfessorByMember(
-        @Param("member") member: Member
+        @Param("member") member: Member,
     ): List<LectureMarkInfo>
 
     fun countByLectureRoom_Id(roomId: Long): Int
+
+    fun deleteAllByMember(member: Member)
 
 }

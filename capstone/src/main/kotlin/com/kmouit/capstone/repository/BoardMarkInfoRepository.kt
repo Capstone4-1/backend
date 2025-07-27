@@ -18,5 +18,6 @@ interface BoardMarkInfoRepository : JpaRepository<BoardMarkInfo, Long> {
     fun existsByMemberAndBoardType(member: Member, boardType: BoardType): Boolean
 
     fun findByMemberAndBoardType(member: Member, boardType: BoardType): BoardMarkInfo?
+    fun deleteAllByMember(member: Member)
 
 }

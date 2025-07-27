@@ -22,7 +22,6 @@ class LectureService(
     private val lectureMarkInfoRepository: LectureMarkInfoRepository,
 ) {
 
-
     @Transactional
     fun createLectureRoom(userId: Long, request: CreateLectureRoomRequest): LectureRoomDto {
         val member = memberRepository.findById(userId)
@@ -43,9 +42,20 @@ class LectureService(
             code = generateCode()
         )
 
+        // 저장 전 ScheduleInfo 리스트 생성 및 lectureRoom에 추가
+        request.lectureTimes.forEach { time ->
+            val schedule = ScheduleInfo(
+                lectureRoom = lectureRoom,
+                dow = time.day,
+                startTime = time.start,
+                endTime = time.end
+            )
+            lectureRoom.schedules.add(schedule)
+        }
         val saved = lectureRoomRepository.save(lectureRoom)
         return LectureRoomDto.from(saved)
     }
+
 
     private fun generateCode(): String {
         return UUID.randomUUID().toString().substring(0, 8)

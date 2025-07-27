@@ -12,13 +12,13 @@ import com.kmouit.capstone.dtos.NoticeDto
 import com.kmouit.capstone.exception.DuplicateUsernameException
 import com.kmouit.capstone.exception.FileSizeLimitExceededException
 import com.kmouit.capstone.exception.NoSearchMemberException
-import com.kmouit.capstone.repository.MemberRepository
-import com.kmouit.capstone.repository.TodoRepository
+import com.kmouit.capstone.repository.*
 import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
+import java.security.PrivateKey
 import java.util.concurrent.Executors
 
 
@@ -29,6 +29,10 @@ class MemberManageService(
     private val memberRepository: MemberRepository,
     private val uploadService: S3UploadService,
     private val todoRepository: TodoRepository,
+    private val lectureMarkInfoRepository: LectureMarkInfoRepository,
+    private val boardMarkInfoRepository: BoardMarkInfoRepository,
+    private val friendInfoRepository: FriendInfoRepository,
+
 ) {
 
     /**
@@ -169,10 +173,19 @@ class MemberManageService(
     @Transactional
     fun withdraw(member: Member) {
         try {
-            memberRepository.delete(member)
-        }catch ( e : Exception){
-            throw Exception("탈퇴 오류")
+            val managedMember = memberRepository.findById(member.id!!)
+                .orElseThrow { IllegalArgumentException("존재하지 않는 회원입니다.") }
+
+            managedMember.notices.forEach { it.member = null }
+            managedMember.notices.clear()
+            lectureMarkInfoRepository.deleteAllByMember(managedMember)
+            boardMarkInfoRepository.deleteAllByMember(managedMember)
+            friendInfoRepository.deleteAllByFriendInfoIdSendMember(managedMember)
+            friendInfoRepository.deleteAllByFriendInfoIdReceiveMember(managedMember)
+            memberRepository.delete(managedMember)
+
+        } catch (e: Exception) {
+            throw Exception("탈퇴 오류: ${e.message}")
         }
     }
-
 }

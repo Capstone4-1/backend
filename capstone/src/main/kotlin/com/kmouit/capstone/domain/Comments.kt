@@ -12,10 +12,8 @@ class Comments (
 
     @ManyToOne(fetch = FetchType.LAZY)
     val parent: Comments? = null,
-
     @OneToMany(mappedBy = "parent", cascade = [CascadeType.ALL])
     val replies: MutableList<Comments> = mutableListOf(),
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     var member : Member? = null,

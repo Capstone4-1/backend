@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
+import java.time.DayOfWeek
 
 
 @PreAuthorize("permitAll()")
@@ -124,10 +125,17 @@ class LectureRoomController(
 
 }
 
+data class LectureTimeRequest(
+    val day: DayOfWeek,
+    val start: Int,
+    val end: Int
+)
+
 data class CreateLectureRoomRequest(
     val title: String,
-    val grade: Int?,
-    val semester: Int?,
+    val grade: Int,
+    val semester: Int,
     val intro: String?,
     val themeColor: String,
+    val lectureTimes: List<LectureTimeRequest>
 )

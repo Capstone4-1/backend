@@ -8,6 +8,7 @@ import java.time.LocalDate
 class LectureRoom (
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "lectureRoom_id")
     var id : Long? = null,
     var title : String? = null,
     @ManyToOne(fetch = FetchType.LAZY)
@@ -19,6 +20,14 @@ class LectureRoom (
     val intro : String? = null,
     var createdDate : LocalDate? = null,
     var code : String? = null,
+
+    @OneToMany(
+        mappedBy = "lectureRoom",
+        cascade = [CascadeType.ALL],
+        orphanRemoval = true,
+        fetch = FetchType.LAZY
+    )
+    var schedules: MutableList<ScheduleInfo> = mutableListOf()
 )
 
 data class LectureRoomDto(

@@ -46,14 +46,12 @@ class PostService(
         val post = postRepository.findById(postId).orElseThrow {
             NoSuchElementException("게시글을 찾을 수 없습니다.")
         }
-
         // 🔹 parent 댓글이 있으면 찾아서 연결
         val parent: Comments? = requestDto.parentId?.let {
             commentRepository.findById(it).orElseThrow {
                 NoSuchElementException("부모 댓글을 찾을 수 없습니다.")
             }
         }
-
         val comment = Comments(
             content = requestDto.content,
             createdDate = LocalDateTime.now(),
@@ -73,7 +71,7 @@ class PostService(
         commentRepository.save(comment)
         // 본인이 쓴 글이면 알림 생성 생략
         if (post.member?.id == member.id) return
-        noticeService.createCommentNotice(post, member)
+        noticeService.createCommentNotice(post, member, requestDto.targetUrl)
     }
 
 

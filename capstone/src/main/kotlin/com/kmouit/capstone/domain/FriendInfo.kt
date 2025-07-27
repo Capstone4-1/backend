@@ -8,11 +8,9 @@ import java.io.Serializable
 class FriendInfo(
     @EmbeddedId
     var friendInfoId: FriendInfoId? = null,
-
     @Enumerated(EnumType.STRING)
     var status :FriendStatus = FriendStatus.SENDING  //기본값은 요청중
 )
-
 @Embeddable
 data class FriendInfoId(
     @ManyToOne(fetch = FetchType.LAZY)

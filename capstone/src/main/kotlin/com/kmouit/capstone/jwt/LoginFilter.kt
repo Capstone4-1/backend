@@ -13,11 +13,12 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.kmouit.capstone.service.SiteManageInfoService
 
 class LoginFilter(
     private val authenticationManager: AuthenticationManager,
     private val jwtUtil: JWTUtil,
-    private val refreshTokenService: RefreshTokenService
+    private val refreshTokenService: RefreshTokenService,
 ) : UsernamePasswordAuthenticationFilter() {
 
     init {
@@ -36,8 +37,8 @@ class LoginFilter(
         if (username.isBlank() || password.isBlank()) {
             throw BadCredentialsException("Username or password cannot be empty")
         }
-
         val authToken = UsernamePasswordAuthenticationToken(username, password)
+
         return authenticationManager.authenticate(authToken)
     }
 
@@ -57,7 +58,6 @@ class LoginFilter(
         response?.contentType = "application/json"
         response?.writer?.write("""{"accessToken": "$accessToken", "refreshToken": "$refreshToken"}""")
         refreshTokenService.saveRefreshToken(userDetails.username, refreshToken) //메모리에 리프레시토큰 저장, 추후 레디스로 대체
-
     }
 
     override fun unsuccessfulAuthentication(
