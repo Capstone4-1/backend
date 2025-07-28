@@ -30,8 +30,8 @@ class Member(
     @Column(nullable = false, unique = true, length = 10) // ✅ 최대 10자 제한
     @NotNull
     @jakarta.validation.constraints.Pattern(
-        regexp = "^[a-zA-Z0-9가-힣]{1,10}$", // ✅ 공백 및 특수문자 불가 정규식
-        message = "닉네임은 1~10자의 한글, 영어, 숫자만 가능합니다. 공백과 특수문자는 사용할 수 없습니다."
+        regexp = "^[a-zA-Z0-9가-힣]{1,13}$", // ✅ 공백 및 특수문자 불가 정규식
+        message = "닉네임은 1~13자의 한글, 영어, 숫자만 가능합니다. 공백과 특수문자는 사용할 수 없습니다."
     )
     var nickname: String? = null,
 

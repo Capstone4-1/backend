@@ -18,3 +18,19 @@ class ScheduleInfo (
 
     var endTime : Int? = null
 )
+
+data class ScheduleInfoDto(
+    val dow: DayOfWeek,
+    val startTime: Int,
+    val endTime: Int
+) {
+    companion object {
+        fun from(entity: ScheduleInfo): ScheduleInfoDto {
+            return ScheduleInfoDto(
+                dow = entity.dow ?: DayOfWeek.MONDAY,
+                startTime = entity.startTime ?: 0,
+                endTime = entity.endTime ?: 0
+            )
+        }
+    }
+}

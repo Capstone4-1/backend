@@ -16,16 +16,16 @@ interface LectureMarkInfoRepository : JpaRepository<LectureMarkInfo, Long> {
 
     @Query(
         """
-    SELECT lmi FROM LectureMarkInfo lmi
+    SELECT DISTINCT lmi FROM LectureMarkInfo lmi
     JOIN FETCH lmi.lectureRoom lr
     JOIN FETCH lr.createBy
+    LEFT JOIN FETCH lr.schedules s
     WHERE lmi.member = :member
-"""
+    """
     )
     fun findWithLectureRoomAndProfessorByMember(
         @Param("member") member: Member,
     ): List<LectureMarkInfo>
-
     fun countByLectureRoom_Id(roomId: Long): Int
 
     fun deleteAllByMember(member: Member)

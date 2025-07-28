@@ -96,13 +96,14 @@ class LectureService(
 
 
     // 강의실 즐겨찾기===
-
     fun findMyLectureFavorites(memberId: Long): List<LectureRoomSummaryDto> {
         val member = memberRepository.findById(memberId).orElseThrow()
         val markList = lectureMarkInfoRepository.findWithLectureRoomAndProfessorByMember(member)
-        return markList.map { LectureRoomSummaryDto.from(it.lectureRoom!!) }
-    }
 
+        return markList
+            .distinctBy { it.lectureRoom?.id } // ✅ 중복 제거
+            .map { LectureRoomSummaryDto.from(it.lectureRoom!!) }
+    }
 
     @Transactional
     fun saveLectureMark(memberId: Long, lectureRoomId: Long) {

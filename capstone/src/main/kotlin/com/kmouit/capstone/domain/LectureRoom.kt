@@ -43,7 +43,9 @@ data class LectureRoomDto(
     val intro: String?,
     val createdDate: LocalDate?,
     val code: String?,
-    val isMarked: Boolean
+    val isMarked: Boolean,
+    val schedules: List<ScheduleInfoDto>
+
 ) {
     companion object {
         fun from(room: LectureRoom, isMarked: Boolean = false): LectureRoomDto {
@@ -60,7 +62,8 @@ data class LectureRoomDto(
                 intro = room.intro,
                 createdDate = room.createdDate,
                 code = room.code,
-                isMarked = isMarked
+                isMarked = isMarked,
+                schedules =  room.schedules.map { ScheduleInfoDto.from(it) }
             )
         }
     }
@@ -77,7 +80,8 @@ data class LectureRoomSummaryDto(
     val intro: String?,
     val themeColor: String,
     val createdDate: LocalDate?,
-    val markedCount: Int? // ✅ 추가됨
+    val markedCount: Int?, // ✅ 추가됨
+    val schedules: List<ScheduleInfoDto>
 ) {
     companion object {
         fun from(room: LectureRoom, markedCount: Int =0): LectureRoomSummaryDto {
@@ -92,7 +96,8 @@ data class LectureRoomSummaryDto(
                 intro = room.intro,
                 themeColor = room.themeColor ?: "#000000",
                 createdDate = room.createdDate,
-                markedCount = markedCount // ✅ 반영
+                markedCount = markedCount,
+                schedules =  room.schedules.map { ScheduleInfoDto.from(it) }
             )
         }
     }
