@@ -14,6 +14,7 @@ import com.kmouit.capstone.repository.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -21,6 +22,8 @@ import java.time.LocalDateTime
 import java.util.*
 import kotlin.NoSuchElementException
 import kotlin.jvm.optionals.getOrNull
+import kotlin.math.max
+import kotlin.math.min
 
 
 @Service
@@ -35,6 +38,7 @@ class PostService(
     private val commentRepository: CommentRepository,
     private val lectureRoomRepository: LectureRoomRepository,
     private val lecturePostRepository: LecturePostRepository,
+    private val postLikeInfoRepository: PostLikeInfoRepository,
 ) {
 
 
@@ -176,14 +180,20 @@ class PostService(
         }
     }
 
-
     @Transactional
     fun getPostDetail(id: Long, currentUserId: Long?): PostDto {
         val post = postRepository.findPostWithDetails(id)
             ?: throw NoSuchElementException("게시글 없음")
-
+        // 조회수 증가
         post.viewCount += 1
-        return post.toDto(currentUserId)
+        // 내가 좋아요를 눌렀는지 체크
+        val isLike = if (currentUserId != null) {
+            postLikeInfoRepository.existsByMemberIdAndPostsId(currentUserId, id)
+        } else {
+            false
+        }
+
+        return post.toDto(currentUserId, isLike)
     }
 
     @Transactional
@@ -199,7 +209,7 @@ class PostService(
     fun getSummary(
         boardType: BoardType?,
         currentUserId: Long,
-        pageSize :Int = 5,
+        pageSize: Int = 5,
         pageNumber: Int = 0,
     ): List<SimplePostDto> {
         println("디버깅:${pageSize}")
@@ -218,7 +228,7 @@ class PostService(
     fun getMultipleSummaries(
         boardTypes: List<BoardType>,
         userId: Long,
-        pageSize: Int
+        pageSize: Int,
     ): List<SimplePostDto> {
         val pageable = PageRequest.of(0, pageSize * boardTypes.size)
         val posts = postRepository.findTopByBoardTypesWithMember(boardTypes, pageable)
@@ -326,7 +336,49 @@ class PostService(
     }
 
 
+    @Transactional
+    fun likePost(postId: Long, memberId: Long): Int {
+        val post = postRepository.findById(postId).orElseThrow { NoSuchElementException("존재하지 않는 게시글") }
+        val member = memberRepository.findById(memberId).orElseThrow { NoSuchElementException("존재하지 않는 회원") }
+        val currentCount = ++post.likeCount
+        val postLikeInfo = PostLikeInfo().apply {
+            this.member = member
+            this.posts = post
+        }
+        postLikeInfoRepository.save(postLikeInfo)
+        return currentCount
+    }
 
 
+    @Transactional
+    fun unlikePost(postId: Long, memberId: Long): Int {
+        val post = postRepository.findById(postId)
+            .orElseThrow { NoSuchElementException("존재하지 않는 게시글") }
+        val member = memberRepository.findById(memberId)
+            .orElseThrow { NoSuchElementException("존재하지 않는 회원") }
+
+        post.likeCount = max(post.likeCount - 1, 0)
+        val currentCount = post.likeCount
+
+        val likeInfo = postLikeInfoRepository.findByMemberAndPosts(member, post)
+            ?: throw NoSuchElementException("좋아요 정보가 없습니다.")
+
+        postLikeInfoRepository.delete(likeInfo)
+        return currentCount
+    }
+
+    fun getMyPosts(member: Member, page: Int, size: Int): Page<SimplePostDto> {
+        val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDate"))
+        return postRepository.findByMember(member, pageable)
+            .map { post ->
+                post.toSimpleDto(member.id, null)
+            }
+    }
+
+    fun getMyComments(member: Member, page: Int, size: Int): Page<CommentsWithPostDto> {
+        val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDate"))
+        val commentsPage = commentRepository.findByMember(member, pageable)
+        return commentsPage.map { it.toCommentsWithPostDto(member.id, isAnonymous = false) }
+    }
 }
 

@@ -39,6 +39,7 @@ class MemberController(
         return if (memberManageService.checkPassword(member, rawPassword)) {
             ResponseEntity.ok(mapOf("message" to true))
         } else {
+            println("실패=========")
             ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(mapOf("message" to false))
         }
     }

@@ -13,9 +13,7 @@ class ScheduleInfo (
 
     @Enumerated(EnumType.STRING)
     var dow : DayOfWeek? = null,
-
     var startTime : Int? = null,
-
     var endTime : Int? = null
 )
 

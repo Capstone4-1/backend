@@ -76,7 +76,8 @@ class PostController(
         @AuthenticationPrincipal userDetails: CustomUserDetails,
     ): ResponseEntity<Map<String, Any>> {
         val pageable: Pageable = PageRequest.of(page, size)
-        val resultPage: Page<SimplePostDto> = postService.findPostDtoByBoardType(userDetails.getId(),boardType, pageable, filter, query)
+        val resultPage: Page<SimplePostDto> =
+            postService.findPostDtoByBoardType(userDetails.getId(), boardType, pageable, filter, query)
 
         val response = PostPageResponseDto(
             posts = resultPage.content,
@@ -123,7 +124,6 @@ class PostController(
         @AuthenticationPrincipal user: CustomUserDetails,
     ): ResponseEntity<Map<String, Any>> {
         val comments = commentService.getTopLevelComments(postId, user.getId())
-
         return ResponseEntity.ok(
             mapOf(
                 "message" to "최상위 댓글 조회 성공",
@@ -180,11 +180,11 @@ class PostController(
     @PostMapping("/summary-multi")
     fun getMultiBoardSummaries(
         @AuthenticationPrincipal userDetails: CustomUserDetails,
-        @RequestBody request: SummaryRequest
+        @RequestBody request: SummaryRequest,
     ): ResponseEntity<Map<String, Any>> {
         val userId = userDetails.getId()
-        val summaries = postService.getMultipleSummaries(request.types.map { BoardType.from(it)!! }, userId, request.pageSize)
-
+        val summaries =
+            postService.getMultipleSummaries(request.types.map { BoardType.from(it)!! }, userId, request.pageSize)
         return ResponseEntity.ok(
             mapOf(
                 "message" to "게시판 통합 요약 조회 성공",
@@ -195,7 +195,7 @@ class PostController(
 
     data class SummaryRequest(
         val types: List<String>,
-        val pageSize: Int = 5
+        val pageSize: Int = 5,
     )
 
 
@@ -250,6 +250,75 @@ class PostController(
         postService.deleteBoardMarkInfo(userDetails.getId(), boardType)
         return ResponseEntity.ok(mapOf("message" to "즐겨찾기 삭제 성공"))
     }
+
+
+    @PostMapping("/{postId}/like")
+    fun responseLikePost(
+        @PathVariable postId: Long,
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+    ): ResponseEntity<Map<String, Any>> {
+        val currentCount = postService.likePost(postId, userDetails.member.id!!)
+        return ResponseEntity.ok(
+            mapOf(
+                "message" to "좋아요 성공",
+                "currentCount" to currentCount
+            )
+        )
+    }
+
+    @PostMapping("/{postId}/unlike")
+    fun responseUnlikePost(
+        @PathVariable postId: Long,
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+    ): ResponseEntity<Map<String, Any>> {
+        val currentCount = postService.unlikePost(postId, userDetails.member.id!!)
+        return ResponseEntity.ok(
+            mapOf(
+                "message" to "좋아요 취소 성공",
+                "currentCount" to currentCount
+            )
+        )
+    }
+
+
+    //마이 페이지 내 내가 쓴글
+    @GetMapping("/my-posts")
+    fun getMyPosts(
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "5") pageSize: Int,
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+    ): ResponseEntity<Map<String, Any>> {
+        val myPostsPage = postService.getMyPosts(userDetails.member, page, pageSize)
+        return ResponseEntity.ok(
+            mapOf(
+                "posts" to myPostsPage.content,
+                "totalPages" to myPostsPage.totalPages,
+                "totalElements" to myPostsPage.totalElements,
+                "currentPage" to myPostsPage.number,
+                "message" to "내가 쓴 글 불러오기 성공"
+            )
+        )
+    }
+
+
+    @GetMapping("/my-comments")
+    fun getMyComments(
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "5") pageSize: Int,
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+    ): ResponseEntity<Map<String, Any>> {
+        val myPostsPage = postService.getMyComments(userDetails.member, page, pageSize)
+        return ResponseEntity.ok(
+            mapOf(
+                "posts" to myPostsPage.content,
+                "totalPages" to myPostsPage.totalPages,
+                "totalElements" to myPostsPage.totalElements,
+                "currentPage" to myPostsPage.number,
+                "message" to "내가 쓴 댓글 불러오기 성공"
+            )
+        )
+    }
+
 }
 
 data class FavoriteRequest(
@@ -275,7 +344,7 @@ data class PostRequestDto(
 data class CommentRequestDto(
     var content: String,
     val parentId: Long? = null,
-    val targetUrl :String? = null
+    val targetUrl: String? = null,
 )
 
 data class LecturePostRequestDto(

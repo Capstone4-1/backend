@@ -44,14 +44,20 @@ class CommentService(
      * 최상위 댓글 가져오기
      */
     fun getTopLevelComments(postId: Long, currentUserId: Long?): List<CommentDto> {
-        val post = postRepository.findById(postId).orElseThrow { NoSuchElementException("게시글 존재 x") }
-        var isSecret  = false
-        if(post.boardType == BoardType.SECRET){
-            isSecret = true
-        }
-        val comments = postRepository.findTopLevelCommentsByPostId(postId)
-        return comments.filter { it.parent == null }.sortedByDescending { it.createdDate }
-            .map { it.toDto(currentUserId, isSecret) }
+        val post = postRepository.findById(postId)
+            .orElseThrow { NoSuchElementException("게시글 존재 x") }
+
+        val isSecret = post.boardType == BoardType.SECRET
+        val comments = commentRepository.findTopLevelCommentsByPostId(postId)
+
+        return comments
+            .map { parent ->
+                val childCount = commentRepository.countByParent_Id(parent.id!!)
+                parent.toDto(currentUserId, isSecret).apply {
+                    countChildren = childCount.toInt()
+                }
+            }
+            .sortedByDescending { it.createdDate }
     }
 
 

@@ -1,7 +1,6 @@
 package com.kmouit.capstone.domain
 
 import jakarta.persistence.*
-import net.coobird.thumbnailator.Thumbnails
 import java.time.LocalDate
 
 @Entity
@@ -44,11 +43,12 @@ data class LectureRoomDto(
     val createdDate: LocalDate?,
     val code: String?,
     val isMarked: Boolean,
-    val schedules: List<ScheduleInfoDto>
+    val schedules: List<ScheduleInfoDto>,
+    val isAuthor : Boolean? = null
 
 ) {
     companion object {
-        fun from(room: LectureRoom, isMarked: Boolean = false): LectureRoomDto {
+        fun from(room: LectureRoom, isMarked: Boolean = false, memberId: Long): LectureRoomDto {
             return LectureRoomDto(
                 id = room.id!!,
                 title = room.title ?: "",
@@ -63,7 +63,8 @@ data class LectureRoomDto(
                 createdDate = room.createdDate,
                 code = room.code,
                 isMarked = isMarked,
-                schedules =  room.schedules.map { ScheduleInfoDto.from(it) }
+                schedules =  room.schedules.map { ScheduleInfoDto.from(it) },
+                isAuthor = memberId == room.createBy!!.id
             )
         }
     }

@@ -46,11 +46,11 @@ data class PostDto(
     var imageUrls: String?= null,
     var price : Int?,
     var viewCount : Int?,
-    var isAuthor: Boolean
+    var isAuthor: Boolean,
+    var isLike : Boolean
 )
-fun Posts.toDto(currentUserId: Long?): PostDto {
+fun Posts.toDto(currentUserId: Long?, isLike : Boolean = false): PostDto {
     val isSecretBoard = this.boardType == BoardType.SECRET
-
     return PostDto(
         id = this.id!!,
         title = this.title ?: "",
@@ -65,14 +65,15 @@ fun Posts.toDto(currentUserId: Long?): PostDto {
         imageUrls = this.imageUrls,
         price = this.price,
         viewCount = this.viewCount,
-        isAuthor = (currentUserId != null && currentUserId == this.member?.id)
+        isAuthor = (currentUserId != null && currentUserId == this.member?.id),
+        isLike = isLike
     )
 }
 data class SimplePostDto(
     val id: Long,
     val title: String,
     val createdDate: LocalDateTime?,
-    val commentCount: Long,
+    val commentCount: Long?,
     val likeCount: Int,
     val boardType: BoardType,
     val writerNickname: String,
@@ -82,7 +83,7 @@ data class SimplePostDto(
     val viewCount: Int,
     val isAuthor: Boolean
 )
-fun Posts.toSimpleDto(currentUserId: Long?, commentCount: Long): SimplePostDto {
+fun Posts.toSimpleDto(currentUserId: Long?, commentCount: Long?): SimplePostDto {
     val isSecretBoard = this.boardType == BoardType.SECRET
 
     return SimplePostDto(

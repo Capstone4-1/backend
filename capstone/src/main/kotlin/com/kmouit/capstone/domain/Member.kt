@@ -27,7 +27,7 @@ class Member(
     @NotNull
     var email: String? = null,
 
-    @Column(nullable = false, unique = true, length = 10) // ✅ 최대 10자 제한
+    @Column(nullable = false, unique = true, length = 13) // ✅ 최대 10자 제한
     @NotNull
     @jakarta.validation.constraints.Pattern(
         regexp = "^[a-zA-Z0-9가-힣]{1,13}$", // ✅ 공백 및 특수문자 불가 정규식
@@ -47,7 +47,7 @@ class Member(
     @Column(name = "role")
     var roles: MutableSet<Role> = mutableSetOf(),
 
-    @Column(length = 200) // ✅ DB 제약
+    @Column(length = 200)
     @jakarta.validation.constraints.Size(
         max = 200,
         message = "자기소개는 200자 이내로 작성해주세요."

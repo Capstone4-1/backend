@@ -5,7 +5,6 @@ import com.kmouit.capstone.DEFAULT_PROFILE_THUMBNAIL_URL
 import com.kmouit.capstone.MAX_FILE_SIZE
 import com.kmouit.capstone.Role.*
 import com.kmouit.capstone.domain.Member
-import com.kmouit.capstone.domain.Todo
 import com.kmouit.capstone.domain.TodoDto
 import com.kmouit.capstone.dtos.JoinForm
 import com.kmouit.capstone.dtos.NoticeDto
@@ -18,8 +17,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
-import java.security.PrivateKey
-import java.util.concurrent.Executors
 
 
 @Service
@@ -145,7 +142,8 @@ class MemberManageService(
     }
 
     fun checkPassword(member: Member, rawPassword: String): Boolean {
-        return passwordEncoder.matches(rawPassword, member.password)
+        val trimmedRaw = rawPassword.trim()
+        return passwordEncoder.matches(trimmedRaw, member.password)
     }
 
 

@@ -2,8 +2,10 @@ package com.kmouit.capstone.repository
 
 import com.kmouit.capstone.BoardType
 import com.kmouit.capstone.domain.Comments
+import com.kmouit.capstone.domain.Member
 import com.kmouit.capstone.domain.Posts
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
@@ -14,7 +16,6 @@ import org.springframework.stereotype.Repository
 @Repository
 interface PostRepository : JpaRepository<Posts, Long> {
 
-    fun findAllByBoardTypeOrderByCreatedDateDesc(boardType: BoardType, pageable: Pageable): Page<Posts>
 
 
     @Query(
@@ -86,15 +87,6 @@ interface PostRepository : JpaRepository<Posts, Long> {
     ): Page<Posts>
 
 
-    @Query(
-        """
-    SELECT c FROM Comments c 
-    JOIN FETCH c.member
-    WHERE c.post.id = :postId AND c.parent IS NULL
-"""
-    )
-    fun findTopLevelCommentsByPostId(@Param("postId") postId: Long): List<Comments>
-
     @Query("""
     SELECT p FROM Posts p
     JOIN FETCH p.member
@@ -105,4 +97,7 @@ interface PostRepository : JpaRepository<Posts, Long> {
         @Param("boardTypes") boardTypes: List<BoardType>,
         pageable: Pageable
     ): List<Posts>
+
+    fun findByMember(member: Member, pageable: Pageable): Page<Posts>
+
 }

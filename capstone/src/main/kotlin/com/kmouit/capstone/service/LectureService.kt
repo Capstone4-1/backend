@@ -53,7 +53,7 @@ class LectureService(
             lectureRoom.schedules.add(schedule)
         }
         val saved = lectureRoomRepository.save(lectureRoom)
-        return LectureRoomDto.from(saved)
+        return LectureRoomDto.from(saved, memberId = userId)
     }
 
 
@@ -80,7 +80,7 @@ class LectureService(
 
         val isMarked = lectureMarkInfoRepository.existsByMemberAndLectureRoom(member, lectureRoom)
 
-        return LectureRoomDto.from(lectureRoom, isMarked)
+        return LectureRoomDto.from(lectureRoom, isMarked, memberId)
     }
 
     fun getPostsByLectureAndPostType(
