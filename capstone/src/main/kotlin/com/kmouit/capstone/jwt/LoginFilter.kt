@@ -26,8 +26,6 @@ class LoginFilter(
     }
 
     override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse): Authentication {
-        println("===로그인필터 호출===")
-
         val objectMapper = jacksonObjectMapper()
         val loginForm: LoginForm = objectMapper.readValue(request.inputStream)
         val username = loginForm.username
@@ -52,7 +50,7 @@ class LoginFilter(
         val userDetails = authResult?.principal as CustomUserDetails
 
         val roles = userDetails.authorities.map { it.authority } // GrantedAuthority에서 authority 값만 추출해서 리스트로 변환
-        val accessToken = jwtUtil.createAccessToken(userDetails.getId() , userDetails.getName(),userDetails.username, roles) // roles를 전달
+        val accessToken = jwtUtil.createAccessToken(userDetails.getId() , userDetails.getName(),userDetails.username, roles)
         val refreshToken = jwtUtil.createRefreshToken(userDetails.getId(),userDetails.username)
 
         response?.contentType = "application/json"

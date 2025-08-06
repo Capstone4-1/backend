@@ -5,6 +5,7 @@ import com.kmouit.capstone.dtos.TokenResponse
 import com.kmouit.capstone.jwt.CustomUserDetails
 import com.kmouit.capstone.jwt.JWTUtil
 import com.kmouit.capstone.service.CustomUserDetailService
+import com.kmouit.capstone.service.MemberManageService
 import com.kmouit.capstone.service.RefreshTokenService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -15,11 +16,12 @@ import org.springframework.web.bind.annotation.RestController
 
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth")
 class AuthController (
     private val refreshTokenService: RefreshTokenService,
     private val jwtUtil: JWTUtil,
-    private val customUserDetailService: CustomUserDetailService
+    private val customUserDetailService: CustomUserDetailService,
+    private val memberManageService: MemberManageService
 ){
     @PostMapping("/refresh")
     fun refreshToken(@RequestBody request: RefreshTokenRequest): ResponseEntity<Any> {
@@ -44,6 +46,7 @@ class AuthController (
         val newRefreshToken = jwtUtil.createRefreshToken(id,username)
 
         refreshTokenService.saveRefreshToken(username, newRefreshToken)
+        memberManageService.refreshRecentLoginTime(userDetails.getId())
 
         return ResponseEntity.ok(TokenResponse(newAccessToken, newRefreshToken))
     }

@@ -17,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
+import java.time.LocalDateTime
 
 
 @Service
@@ -91,6 +92,7 @@ class MemberManageService(
             name = joinForm.name,
             email = joinForm.email,
             nickname = joinForm.name,
+            joinDate = LocalDateTime.now(),
             profileImageUrl = DEFAULT_PROFILE_IMAGE_URL,
             thumbnailUrl = DEFAULT_PROFILE_THUMBNAIL_URL,
             intro = "${joinForm.name}입니다. 잘 부탁드립니다."
@@ -185,5 +187,12 @@ class MemberManageService(
         } catch (e: Exception) {
             throw Exception("탈퇴 오류: ${e.message}")
         }
+    }
+
+
+    @Transactional
+    fun refreshRecentLoginTime(id: Long) {
+        val member = memberRepository.findById(id).orElseThrow { NoSuchElementException("존재하지 않는 회원") }
+        member.lastLoginAt = LocalDateTime.now()
     }
 }

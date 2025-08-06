@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.kmouit.capstone.Role
 import jakarta.persistence.*
 import jakarta.validation.constraints.NotNull
+import java.time.LocalDateTime
 
 @Entity
 class Member(
@@ -18,6 +19,9 @@ class Member(
     @Column(nullable = false)
     @NotNull
     var password: String? = null,
+
+    var joinDate : LocalDateTime? = null,
+    var lastLoginAt: LocalDateTime? = null,
 
     @Column(nullable = false)
     @NotNull
