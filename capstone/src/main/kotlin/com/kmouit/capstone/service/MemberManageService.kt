@@ -98,7 +98,6 @@ class MemberManageService(
             intro = "${joinForm.name}입니다. 잘 부탁드립니다."
         )
         member.roles.add(USER)
-        member.roles.add(STUDENT)
         memberRepository.save(member)
     }
 

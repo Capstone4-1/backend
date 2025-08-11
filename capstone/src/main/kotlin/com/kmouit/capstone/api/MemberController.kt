@@ -10,12 +10,14 @@ import com.kmouit.capstone.repository.FriendInfoRepository
 import com.kmouit.capstone.repository.MemberRepository
 import com.kmouit.capstone.repository.TodoRepository
 import com.kmouit.capstone.service.MemberManageService
+import com.kmouit.capstone.service.RefreshTokenService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import java.time.LocalDateTime
 
 @PreAuthorize("permitAll()")
 @RestController
@@ -25,6 +27,7 @@ class MemberController(
     private val memberManageService: MemberManageService,
     private val todoRepository: TodoRepository,
     private val friendInfoRepository: FriendInfoRepository,
+    private val refreshTokenService: RefreshTokenService
 ) {
 
     @PostMapping("/verify-password")
@@ -278,7 +281,7 @@ class MemberController(
     }
 
     @DeleteMapping
-    fun withdraw( @AuthenticationPrincipal userDetails: CustomUserDetails,){
+    fun withdraw(@AuthenticationPrincipal userDetails: CustomUserDetails) {
         memberManageService.withdraw(userDetails.member)
     }
 
@@ -286,8 +289,13 @@ class MemberController(
      * 로그아웃
      */
     @PostMapping("/logout")
-    fun logout(@RequestBody logoutRequest: Map<String, String>) {
-        //Todo
+    fun logout(@AuthenticationPrincipal userDetails: CustomUserDetails): ResponseEntity<String> {
+        val username = userDetails.username
+        // 1. 메모리/레디스에 저장된 리프레시 토큰 제거
+        refreshTokenService.deleteRefreshToken(username)
+        memberManageService.refreshRecentLoginTime(userDetails.getId())
+
+        return ResponseEntity.ok("Logout successful")
     }
 
 

@@ -1,6 +1,7 @@
 package com.kmouit.capstone.jwt
 
 import com.kmouit.capstone.service.CustomUserDetailService
+import com.kmouit.capstone.service.MemberManageService
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
@@ -21,7 +22,8 @@ import javax.crypto.spec.SecretKeySpec
 @Component
 class JwtAuthenticationFilter(
     @Value("\${spring.jwt.secret}") private val secret: String,
-    private val customUserDetailService: CustomUserDetailService  // ✅
+    private val customUserDetailService: CustomUserDetailService ,
+    private val memberManageService: MemberManageService
 ) : OncePerRequestFilter() {
 
     private val secretKey: SecretKey = SecretKeySpec(

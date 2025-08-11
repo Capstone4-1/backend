@@ -30,13 +30,10 @@ class LoginFilter(
         val loginForm: LoginForm = objectMapper.readValue(request.inputStream)
         val username = loginForm.username
         val password = loginForm.password
-
-        // null이나 빈 값 체크 추가 가능
         if (username.isBlank() || password.isBlank()) {
             throw BadCredentialsException("Username or password cannot be empty")
         }
         val authToken = UsernamePasswordAuthenticationToken(username, password)
-
         return authenticationManager.authenticate(authToken)
     }
 

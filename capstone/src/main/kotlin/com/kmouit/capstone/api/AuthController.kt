@@ -1,5 +1,6 @@
 package com.kmouit.capstone.api
 
+import com.kmouit.capstone.config.AuthMailService
 import com.kmouit.capstone.dtos.RefreshTokenRequest
 import com.kmouit.capstone.dtos.TokenResponse
 import com.kmouit.capstone.jwt.CustomUserDetails
@@ -17,12 +18,13 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/api/auth")
-class AuthController (
+class AuthController(
     private val refreshTokenService: RefreshTokenService,
     private val jwtUtil: JWTUtil,
     private val customUserDetailService: CustomUserDetailService,
-    private val memberManageService: MemberManageService
-){
+    private val memberManageService: MemberManageService,
+    private val mailService: AuthMailService,
+) {
     @PostMapping("/refresh")
     fun refreshToken(@RequestBody request: RefreshTokenRequest): ResponseEntity<Any> {
         val refreshToken = request.refreshToken
@@ -42,13 +44,26 @@ class AuthController (
         val roles = userDetails.authorities.map { it.authority }
         val id = userDetails.getId()
         val name = userDetails.getName()
-        val newAccessToken = jwtUtil.createAccessToken(id,name, username, roles)
-        val newRefreshToken = jwtUtil.createRefreshToken(id,username)
+        val newAccessToken = jwtUtil.createAccessToken(id, name, username, roles)
+        val newRefreshToken = jwtUtil.createRefreshToken(id, username)
 
         refreshTokenService.saveRefreshToken(username, newRefreshToken)
         memberManageService.refreshRecentLoginTime(userDetails.getId())
 
         return ResponseEntity.ok(TokenResponse(newAccessToken, newRefreshToken))
     }
+
+    @PostMapping("/email-check")
+    fun emailCheck(
+        @RequestBody mailDto: MailDto
+    ): ResponseEntity<Pair<String, String>> {
+       mailService.sendSimpleMessage(mailDto.email);
+        return ResponseEntity.ok("message" to "인증번호 송신 성공")
+    }
+
+    data class MailDto(
+        var email : String
+    )
+
 
 }
