@@ -102,6 +102,31 @@ class PostService(
         postRepository.save(newPost)
     }
 
+    @Transactional
+    fun updatePost(postId: Long, requestDto: PostRequestDto, member: Member) {
+        val post = postRepository.findById(postId)
+            .orElseThrow { IllegalArgumentException("해당 게시글이 존재하지 않습니다. id=$postId") }
+
+        if (post.member!!.id != member.id) {
+            throw IllegalAccessException("게시글 수정 권한이 없습니다.")
+        }
+
+
+        val originalUrl = requestDto.imageUrls
+        var thumbnailUrl: String? = null
+        if (!originalUrl.isNullOrBlank()) {
+            thumbnailUrl = uploadService.generateThumbnailFromOriginalUrl(originalUrl)
+        }
+        post.title = requestDto.title
+        post.content = requestDto.content
+        post.imageUrls = requestDto.imageUrls
+        post.price = requestDto.price
+        post.boardType = BoardType.from(requestDto.boardType)
+        post.thumbnailUrl = thumbnailUrl
+        post.imageUrls = requestDto.imageUrls
+
+
+    }
 
     @Transactional
     fun createLecturePost(dto: LecturePostRequestDto, member: Member) {
@@ -178,6 +203,8 @@ class PostService(
             postRepository.save(newPost)
         }
     }
+
+
 
     @Transactional
     fun getPostDetail(id: Long, currentUserId: Long?): PostDto {
@@ -379,5 +406,8 @@ class PostService(
         val commentsPage = commentRepository.findByMember(member, pageable)
         return commentsPage.map { it.toCommentsWithPostDto(member.id, isAnonymous = false) }
     }
+
+
+
 }
 

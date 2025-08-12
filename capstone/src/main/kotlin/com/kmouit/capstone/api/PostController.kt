@@ -43,6 +43,17 @@ class PostController(
         )
     }
 
+    @PutMapping("/post-up/{postId}")
+    fun updatePost(
+        @PathVariable postId: Long,
+        @RequestBody requestDto: PostRequestDto,
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+    ): ResponseEntity<Map<String, String>> {
+        postService.updatePost(postId, requestDto, userDetails.member)
+        return ResponseEntity.ok(
+            mapOf("message" to "post 수정 성공")
+        )
+    }
 
     @PostMapping("/lecture-post-up")
     fun createLecturePost(
@@ -52,6 +63,8 @@ class PostController(
         postService.createLecturePost(requestDto, userDetails.member)
         return ResponseEntity.ok(mapOf("message" to "lecture-post-up 성공"))
     }
+
+
 
     @DeleteMapping("/{postId}")
     fun deletePost(
@@ -206,7 +219,6 @@ class PostController(
         @AuthenticationPrincipal userDetails: CustomUserDetails,
     ): ResponseEntity<Map<String, Any>> {
         val summary = postService.getSummary(BoardType.from(boardType), userDetails.getId(), pageSize)
-        println("디버깅:${pageSize}")
         return ResponseEntity.ok(
             mapOf(
                 "Posts" to summary,
