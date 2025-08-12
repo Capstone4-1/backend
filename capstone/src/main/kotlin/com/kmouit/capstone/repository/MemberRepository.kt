@@ -27,5 +27,6 @@ interface MemberRepository : JpaRepository<Member, Long> , JpaSpecificationExecu
     @Query("SELECT m FROM Member m LEFT JOIN FETCH m.notices WHERE m.id = :id")
     fun findMemberAndNoticesById(@Param("id") id: Long): Member?
     fun findByNickname(nickname: String): Member?
+    fun existsByEmail(email: String): Boolean
 
 }

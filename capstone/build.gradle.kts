@@ -38,6 +38,7 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("com.twelvemonkeys.imageio:imageio-webp:3.9.4")
 	implementation ("org.springframework.boot:spring-boot-starter-mail")
+	implementation ("org.springframework.boot:spring-boot-starter-data-redis")
 	runtimeOnly("com.h2database:h2")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")

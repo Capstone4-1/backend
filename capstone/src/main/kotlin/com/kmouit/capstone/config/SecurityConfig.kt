@@ -53,6 +53,8 @@ class SecurityConfig(
                 auth
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .requestMatchers("/api/member/join").permitAll()
+                    .requestMatchers("/api/auth/email-check").permitAll()
+                    .requestMatchers("/api/auth/verify-code").permitAll()
                     .requestMatchers("/api/member/login").permitAll()
                     .requestMatchers("/api/member/admin-test").hasAnyRole("ADMIN")
                     .requestMatchers("/auth/refresh").permitAll()

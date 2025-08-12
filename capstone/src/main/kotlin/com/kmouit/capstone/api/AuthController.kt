@@ -10,6 +10,7 @@ import com.kmouit.capstone.service.MemberManageService
 import com.kmouit.capstone.service.RefreshTokenService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController
 
 
 @RestController
+@PreAuthorize("permitAll()")
 @RequestMapping("/api/auth")
 class AuthController(
     private val refreshTokenService: RefreshTokenService,
@@ -55,15 +57,38 @@ class AuthController(
 
     @PostMapping("/email-check")
     fun emailCheck(
-        @RequestBody mailDto: MailDto
-    ): ResponseEntity<Pair<String, String>> {
-       mailService.sendSimpleMessage(mailDto.email);
-        return ResponseEntity.ok("message" to "인증번호 송신 성공")
+        @RequestBody mailDto: MailDto,
+    ): ResponseEntity<Map<String, String>> {
+        if (memberManageService.isEmailRegistered(mailDto.email)) {
+            return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(mapOf("message" to "이미 가입된 이메일입니다."))
+        }
+
+        mailService.sendSimpleMessage(mailDto.email)
+        return ResponseEntity.ok(mapOf("message" to "인증번호 송신 성공"))
     }
 
     data class MailDto(
-        var email : String
+        var email: String,
     )
 
+    @PostMapping("/verify-code")
+    fun verifyCode(
+        @RequestBody verifyDto: VerifyDto,
+    ): ResponseEntity<Map<String, String>> {
+        val isValid = mailService.verifyCode(verifyDto.email, verifyDto.code)
+        return if (isValid) {
+            ResponseEntity.ok(mapOf("message" to "인증 성공"))
+        } else {
+            ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(mapOf("message" to "인증번호가 올바르지 않습니다."))
+        }
+    }
+
+    data class VerifyDto(
+        var email: String,
+        var code: String,
+    )
 
 }

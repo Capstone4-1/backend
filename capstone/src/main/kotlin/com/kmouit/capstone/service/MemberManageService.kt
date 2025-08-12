@@ -194,4 +194,8 @@ class MemberManageService(
         val member = memberRepository.findById(id).orElseThrow { NoSuchElementException("존재하지 않는 회원") }
         member.lastLoginAt = LocalDateTime.now()
     }
+
+    fun isEmailRegistered(email: String): Boolean {
+        return memberRepository.existsByEmail(email)
+    }
 }
