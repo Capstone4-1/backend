@@ -68,7 +68,6 @@ class AuthController(
         mailService.sendSimpleMessage(mailDto.email)
         return ResponseEntity.ok(mapOf("message" to "인증번호 송신 성공"))
     }
-
     data class MailDto(
         var email: String,
     )

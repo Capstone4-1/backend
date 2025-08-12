@@ -1,8 +1,8 @@
 package com.kmouit.capstone.service
 
 import com.kmouit.capstone.api.CrawledJobDto
-import com.kmouit.capstone.domain.JobInfo
-import com.kmouit.capstone.repository.JobInfoRepository
+import com.kmouit.capstone.domain.jpa.JobInfo
+import com.kmouit.capstone.repository.jpa.JobInfoRepository
 import org.springframework.stereotype.Service
 
 

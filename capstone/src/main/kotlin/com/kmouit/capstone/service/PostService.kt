@@ -6,11 +6,11 @@ import com.kmouit.capstone.api.CommentRequestDto
 import com.kmouit.capstone.api.CrawledNoticeDto
 import com.kmouit.capstone.api.LecturePostRequestDto
 import com.kmouit.capstone.api.PostRequestDto
-import com.kmouit.capstone.domain.*
+import com.kmouit.capstone.domain.jpa.*
 import com.kmouit.capstone.exception.CustomAccessDeniedException
 import com.kmouit.capstone.exception.DuplicateFavoriteException
 import com.kmouit.capstone.exception.NoSearchMemberException
-import com.kmouit.capstone.repository.*
+import com.kmouit.capstone.repository.jpa.*
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -23,7 +23,6 @@ import java.util.*
 import kotlin.NoSuchElementException
 import kotlin.jvm.optionals.getOrNull
 import kotlin.math.max
-import kotlin.math.min
 
 
 @Service

@@ -4,7 +4,7 @@ import com.kmouit.capstone.dtos.AcceptFriendRequestDto
 import com.kmouit.capstone.dtos.FriendRequestDto
 import com.kmouit.capstone.dtos.MemberSimpleDto
 import com.kmouit.capstone.jwt.CustomUserDetails
-import com.kmouit.capstone.repository.MemberRepository
+import com.kmouit.capstone.repository.jpa.MemberRepository
 import com.kmouit.capstone.service.FriendService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize

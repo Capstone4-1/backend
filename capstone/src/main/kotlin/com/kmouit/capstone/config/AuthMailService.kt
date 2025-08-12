@@ -1,20 +1,21 @@
 package com.kmouit.capstone.config
 
+import com.kmouit.capstone.domain.redis.EmailCode
+import com.kmouit.capstone.repository.redis.EmailCodeRepository
 import jakarta.mail.Message
 import jakarta.mail.MessagingException
 import jakarta.mail.internet.MimeMessage
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.stereotype.Service
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
 
 @Service
 class AuthMailService(
-    private val javaMailSender: JavaMailSender
+    private val javaMailSender: JavaMailSender,
+    private val emailCodeRepository: EmailCodeRepository
 ) {
     companion object {
         private const val senderEmail = "moai37487@gmail.com"
-        private val verificationCodes = ConcurrentHashMap<String, String>()
     }
 
     // 랜덤 인증번호 생성
@@ -24,7 +25,6 @@ class AuthMailService(
 
         repeat(8) {
             when (random.nextInt(3)) {
-                0 -> key.append((random.nextInt(26) + 97).toChar()) // 소문자
                 1 -> key.append((random.nextInt(26) + 65).toChar()) // 대문자
                 2 -> key.append(random.nextInt(10)) // 숫자
             }
@@ -54,10 +54,9 @@ class AuthMailService(
     fun sendSimpleMessage(sendEmail: String): String {
         val number = createNumber()
         val message = createMail(sendEmail, number)
-
         try {
             javaMailSender.send(message)
-            verificationCodes[sendEmail] = number
+            emailCodeRepository.save(EmailCode(sendEmail, number))
         } catch (e: Exception) {
             e.printStackTrace()
             throw IllegalArgumentException("메일 발송 중 오류가 발생했습니다.")
@@ -67,11 +66,11 @@ class AuthMailService(
 
     // 코드 검증
     fun verifyCode(email: String, code: String): Boolean {
-        val savedCode = verificationCodes[email]
+        val savedCode = emailCodeRepository.findById(email).map { it.code }.orElse(null)
         val isValid = savedCode != null && savedCode == code
 
         if (isValid) {
-            verificationCodes.remove(email)
+            emailCodeRepository.deleteById(email)
         }
         return isValid
     }

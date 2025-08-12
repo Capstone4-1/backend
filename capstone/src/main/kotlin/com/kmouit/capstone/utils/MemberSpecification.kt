@@ -1,4 +1,4 @@
-import com.kmouit.capstone.domain.Member
+import com.kmouit.capstone.domain.jpa.Member
 import com.kmouit.capstone.Role
 import jakarta.persistence.criteria.Predicate
 import jakarta.persistence.criteria.SetJoin

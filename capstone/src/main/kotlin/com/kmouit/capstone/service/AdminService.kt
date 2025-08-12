@@ -1,8 +1,8 @@
 package com.kmouit.capstone.service
 
 import com.kmouit.capstone.Role
-import com.kmouit.capstone.domain.Member
-import com.kmouit.capstone.repository.MemberRepository
+import com.kmouit.capstone.domain.jpa.Member
+import com.kmouit.capstone.repository.jpa.MemberRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

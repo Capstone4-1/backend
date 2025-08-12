@@ -1,7 +1,7 @@
 package com.kmouit.capstone.service
 
 import com.kmouit.capstone.jwt.CustomUserDetails
-import com.kmouit.capstone.repository.MemberRepository
+import com.kmouit.capstone.repository.jpa.MemberRepository
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException

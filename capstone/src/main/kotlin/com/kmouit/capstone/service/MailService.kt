@@ -2,19 +2,18 @@ package com.kmouit.capstone.service
 
 import com.kmouit.capstone.MailStatus
 import com.kmouit.capstone.api.DuplicateMailRoomException
-import com.kmouit.capstone.domain.*
+import com.kmouit.capstone.domain.jpa.*
 import com.kmouit.capstone.dtos.MemberSimpleDto
-import com.kmouit.capstone.repository.MailRepository
-import com.kmouit.capstone.repository.MailRoomInfoRepository
-import com.kmouit.capstone.repository.MailRoomRepository
-import com.kmouit.capstone.repository.MemberRepository
+import com.kmouit.capstone.repository.jpa.MailRepository
+import com.kmouit.capstone.repository.jpa.MailRoomInfoRepository
+import com.kmouit.capstone.repository.jpa.MailRoomRepository
+import com.kmouit.capstone.repository.jpa.MemberRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.awt.print.Pageable
 import java.time.LocalDateTime
 
 

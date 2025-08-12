@@ -1,14 +1,14 @@
 package com.kmouit.capstone.api
 
 import com.kmouit.capstone.TodoItemStatus
-import com.kmouit.capstone.domain.FriendSummaryDto
-import com.kmouit.capstone.domain.Todo
-import com.kmouit.capstone.domain.TodoDto
+import com.kmouit.capstone.domain.jpa.FriendSummaryDto
+import com.kmouit.capstone.domain.jpa.Todo
+import com.kmouit.capstone.domain.jpa.TodoDto
 import com.kmouit.capstone.dtos.*
 import com.kmouit.capstone.jwt.CustomUserDetails
-import com.kmouit.capstone.repository.FriendInfoRepository
-import com.kmouit.capstone.repository.MemberRepository
-import com.kmouit.capstone.repository.TodoRepository
+import com.kmouit.capstone.repository.jpa.FriendInfoRepository
+import com.kmouit.capstone.repository.jpa.MemberRepository
+import com.kmouit.capstone.repository.jpa.TodoRepository
 import com.kmouit.capstone.service.MemberManageService
 import com.kmouit.capstone.service.RefreshTokenService
 import org.springframework.http.HttpStatus
@@ -17,7 +17,6 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import java.time.LocalDateTime
 
 @PreAuthorize("permitAll()")
 @RestController

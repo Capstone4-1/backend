@@ -4,14 +4,14 @@ import com.kmouit.capstone.DEFAULT_PROFILE_IMAGE_URL
 import com.kmouit.capstone.DEFAULT_PROFILE_THUMBNAIL_URL
 import com.kmouit.capstone.MAX_FILE_SIZE
 import com.kmouit.capstone.Role.*
-import com.kmouit.capstone.domain.Member
-import com.kmouit.capstone.domain.TodoDto
+import com.kmouit.capstone.domain.jpa.Member
+import com.kmouit.capstone.domain.jpa.TodoDto
 import com.kmouit.capstone.dtos.JoinForm
 import com.kmouit.capstone.dtos.NoticeDto
 import com.kmouit.capstone.exception.DuplicateUsernameException
 import com.kmouit.capstone.exception.FileSizeLimitExceededException
 import com.kmouit.capstone.exception.NoSearchMemberException
-import com.kmouit.capstone.repository.*
+import com.kmouit.capstone.repository.jpa.*
 import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
@@ -31,7 +31,7 @@ class MemberManageService(
     private val boardMarkInfoRepository: BoardMarkInfoRepository,
     private val friendInfoRepository: FriendInfoRepository,
 
-) {
+    ) {
 
     /**
      * 프로필 사진 설정

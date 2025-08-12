@@ -1,8 +1,8 @@
 package com.kmouit.capstone.api
 
 import com.kmouit.capstone.BoardType
-import com.kmouit.capstone.domain.LecturePostsDto
-import com.kmouit.capstone.domain.SimplePostDto
+import com.kmouit.capstone.domain.jpa.LecturePostsDto
+import com.kmouit.capstone.domain.jpa.SimplePostDto
 import com.kmouit.capstone.jwt.CustomUserDetails
 import com.kmouit.capstone.service.CommentService
 import com.kmouit.capstone.service.PostService

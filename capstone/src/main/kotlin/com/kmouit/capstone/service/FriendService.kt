@@ -1,12 +1,12 @@
 package com.kmouit.capstone.service
 
-import com.kmouit.capstone.domain.FriendInfo
-import com.kmouit.capstone.domain.FriendInfoId
-import com.kmouit.capstone.domain.FriendStatus
-import com.kmouit.capstone.domain.Member
+import com.kmouit.capstone.domain.jpa.FriendInfo
+import com.kmouit.capstone.domain.jpa.FriendInfoId
+import com.kmouit.capstone.domain.jpa.FriendStatus
+import com.kmouit.capstone.domain.jpa.Member
 import com.kmouit.capstone.dtos.MemberSimpleDto
-import com.kmouit.capstone.repository.FriendInfoRepository
-import com.kmouit.capstone.repository.MemberRepository
+import com.kmouit.capstone.repository.jpa.FriendInfoRepository
+import com.kmouit.capstone.repository.jpa.MemberRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

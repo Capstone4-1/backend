@@ -2,10 +2,9 @@ package com.kmouit.capstone.dtos
 
 import com.fasterxml.jackson.annotation.JsonCreator
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.kmouit.capstone.domain.Member
-import com.kmouit.capstone.domain.Notice
+import com.kmouit.capstone.domain.jpa.Member
+import com.kmouit.capstone.domain.jpa.Notice
 import jakarta.validation.constraints.NotEmpty
-import net.coobird.thumbnailator.Thumbnails
 import java.time.LocalDateTime
 
 

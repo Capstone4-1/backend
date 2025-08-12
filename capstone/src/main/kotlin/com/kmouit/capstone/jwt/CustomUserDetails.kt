@@ -1,6 +1,6 @@
 package com.kmouit.capstone.jwt
 
-import com.kmouit.capstone.domain.Member
+import com.kmouit.capstone.domain.jpa.Member
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails

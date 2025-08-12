@@ -1,20 +1,23 @@
 package com.kmouit.capstone.service
 
+import com.kmouit.capstone.domain.redis.RefreshToken
+import com.kmouit.capstone.repository.redis.RefreshTokenRepository
 import org.springframework.stereotype.Service
-
 @Service
-class RefreshTokenService { //개발시엔 그냥 메모리에 저장, 추후 redis 최적화 고려
-    private val tokenStorage = mutableMapOf<String, String>()
-
+class RefreshTokenService(
+    private val refreshTokenRepository: RefreshTokenRepository
+) {
     fun saveRefreshToken(username: String, refreshToken: String) {
-        tokenStorage[username] = refreshToken
+        refreshTokenRepository.save(RefreshToken(username, refreshToken))
     }
 
     fun getRefreshToken(username: String): String? {
-        return tokenStorage[username]
+        return refreshTokenRepository.findById(username)
+            .map { it.token }
+            .orElse(null)
     }
 
     fun deleteRefreshToken(username: String) {
-        tokenStorage.remove(username)
+        refreshTokenRepository.deleteById(username)
     }
 }

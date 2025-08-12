@@ -3,11 +3,11 @@ package com.kmouit.capstone.service
 import com.kmouit.capstone.LecturePostType
 import com.kmouit.capstone.Role
 import com.kmouit.capstone.api.CreateLectureRoomRequest
-import com.kmouit.capstone.domain.*
-import com.kmouit.capstone.repository.LectureMarkInfoRepository
-import com.kmouit.capstone.repository.LecturePostRepository
-import com.kmouit.capstone.repository.LectureRoomRepository
-import com.kmouit.capstone.repository.MemberRepository
+import com.kmouit.capstone.domain.jpa.*
+import com.kmouit.capstone.repository.jpa.LectureMarkInfoRepository
+import com.kmouit.capstone.repository.jpa.LecturePostRepository
+import com.kmouit.capstone.repository.jpa.LectureRoomRepository
+import com.kmouit.capstone.repository.jpa.MemberRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate

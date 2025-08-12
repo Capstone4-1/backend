@@ -1,6 +1,6 @@
 package com.kmouit.capstone.api
 
-import com.kmouit.capstone.domain.Member
+import com.kmouit.capstone.domain.jpa.Member
 import com.kmouit.capstone.service.AdminService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -55,7 +55,7 @@ data class MemberSummaryDto(
     val roles: List<String>,
 ) {
     companion object {
-        fun from(member: Member ): MemberSummaryDto {
+        fun from(member: Member): MemberSummaryDto {
             return MemberSummaryDto(
                 id = member.id!!,
                 username = member.username ?: "",

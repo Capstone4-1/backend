@@ -1,7 +1,7 @@
 package com.kmouit.capstone.api
 
-import com.kmouit.capstone.domain.JobInfoDto
-import com.kmouit.capstone.repository.JobInfoRepository
+import com.kmouit.capstone.domain.jpa.JobInfoDto
+import com.kmouit.capstone.repository.jpa.JobInfoRepository
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping

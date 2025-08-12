@@ -1,8 +1,6 @@
 package com.kmouit.capstone.api
 
-import com.kmouit.capstone.domain.Mail
-import com.kmouit.capstone.domain.MailDto
-import com.kmouit.capstone.domain.toDto
+import com.kmouit.capstone.domain.jpa.toDto
 import com.kmouit.capstone.jwt.CustomUserDetails
 import com.kmouit.capstone.service.MailService
 import org.springframework.http.ResponseEntity

@@ -2,20 +2,17 @@ package com.kmouit.capstone.service
 
 import com.kmouit.capstone.BoardType
 import com.kmouit.capstone.api.CommentRequestDto
-import com.kmouit.capstone.domain.CommentDto
-import com.kmouit.capstone.domain.Comments
-import com.kmouit.capstone.domain.Member
-import com.kmouit.capstone.domain.toDto
+import com.kmouit.capstone.domain.jpa.CommentDto
+import com.kmouit.capstone.domain.jpa.Comments
+import com.kmouit.capstone.domain.jpa.Member
+import com.kmouit.capstone.domain.jpa.toDto
 import com.kmouit.capstone.exception.CustomAccessDeniedException
-import com.kmouit.capstone.repository.CommentRepository
-import com.kmouit.capstone.repository.LecturePostRepository
-import com.kmouit.capstone.repository.MemberRepository
-import com.kmouit.capstone.repository.PostRepository
-import org.springframework.security.core.annotation.AuthenticationPrincipal
+import com.kmouit.capstone.repository.jpa.CommentRepository
+import com.kmouit.capstone.repository.jpa.LecturePostRepository
+import com.kmouit.capstone.repository.jpa.MemberRepository
+import com.kmouit.capstone.repository.jpa.PostRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
 import java.time.LocalDateTime
 
 
