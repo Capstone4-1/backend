@@ -2,10 +2,7 @@ package com.kmouit.capstone.service
 
 import com.kmouit.capstone.BoardType
 import com.kmouit.capstone.api.CommentRequestDto
-import com.kmouit.capstone.domain.jpa.CommentDto
-import com.kmouit.capstone.domain.jpa.Comments
-import com.kmouit.capstone.domain.jpa.Member
-import com.kmouit.capstone.domain.jpa.toDto
+import com.kmouit.capstone.domain.jpa.*
 import com.kmouit.capstone.exception.CustomAccessDeniedException
 import com.kmouit.capstone.repository.jpa.CommentRepository
 import com.kmouit.capstone.repository.jpa.LecturePostRepository
@@ -13,6 +10,7 @@ import com.kmouit.capstone.repository.jpa.MemberRepository
 import com.kmouit.capstone.repository.jpa.PostRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 
@@ -125,6 +123,17 @@ class CommentService(
         if (lecturePost.member?.id == member.id) return
 
         noticeService.createCommentNoticeForLecturePost(lecturePost, member)
+    }
+
+    fun findTodayComments(): List<CommentsWithPostDto> {
+        val today = LocalDate.now()
+        val start = today.atStartOfDay()
+        val end = today.plusDays(1).atStartOfDay()
+        val comments = commentRepository.findByCreatedDateBetween(start, end)
+
+        return comments.map { comment ->
+            comment.toCommentsWithPostDto(currentUserId = null, isAnonymous = false)
+        }
     }
 
 

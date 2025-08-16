@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 
 
 @Repository
@@ -39,7 +40,7 @@ interface CommentRepository : JpaRepository<Comments, Long> {
     )
     fun findTopLevelCommentsByPostId(@Param("postId") postId: Long): List<Comments>
     fun findByMember(member: Member, pageable: Pageable): Page<Comments>
-
+    fun findByCreatedDateBetween(start: LocalDateTime, end: LocalDateTime): List<Comments>
 
 
 }

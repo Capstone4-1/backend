@@ -18,6 +18,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.NoSuchElementException
@@ -84,7 +85,6 @@ class PostService(
             ?: throw NoSuchElementException("멤버를 찾을 수 없습니다.")
 
         val originalUrl = requestDto.imageUrls
-
         var thumbnailUrl: String? = null
         if (!originalUrl.isNullOrBlank()) {
             thumbnailUrl = uploadService.generateThumbnailFromOriginalUrl(originalUrl)
@@ -407,6 +407,19 @@ class PostService(
         return commentsPage.map { it.toCommentsWithPostDto(member.id, isAnonymous = false) }
     }
 
+    @Transactional(readOnly = true)
+    fun findTodayPosts(): List<SimplePostDto> {
+        val today = LocalDate.now()
+        val start = today.atStartOfDay()
+        val end = today.plusDays(1).atStartOfDay()
+
+        val posts = postRepository.findByCreatedDateBetween(start, end)
+
+        return posts.map { post ->
+            val commentCount = commentRepository.countByPostId(post.id!!)
+            post.toSimpleDto(currentUserId = null, commentCount = commentCount)
+        }
+    }
 
 
 }

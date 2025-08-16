@@ -1,7 +1,11 @@
 package com.kmouit.capstone.api
 
+import com.kmouit.capstone.domain.jpa.CommentsWithPostDto
 import com.kmouit.capstone.domain.jpa.Member
+import com.kmouit.capstone.domain.jpa.SimplePostDto
 import com.kmouit.capstone.service.AdminService
+import com.kmouit.capstone.service.CommentService
+import com.kmouit.capstone.service.PostService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
@@ -11,7 +15,9 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/admin")
 class AdminController(
-    private val adminService: AdminService
+    private val adminService: AdminService,
+    private val postService: PostService,
+    private val commentService: CommentService
 ) {
 
     @GetMapping("search-users")
@@ -20,10 +26,8 @@ class AdminController(
         @RequestParam(required = false) name: String?,
         @RequestParam(required = false) role: String?
     ): ResponseEntity<List<MemberSummaryDto>> {
-
         val members = adminService.searchUsers(username, name, role)
         val result = members.map { MemberSummaryDto.from(it) }
-
         return ResponseEntity.ok(result)
     }
 
@@ -43,6 +47,18 @@ class AdminController(
     ): ResponseEntity<String> {
         adminService.revokeRole(userId, role)
         return ResponseEntity.ok("권한 회수 성공")
+    }
+
+    @GetMapping("/today-posts")
+    fun getTodayPosts(): ResponseEntity<List<SimplePostDto>> {
+        val posts = postService.findTodayPosts()
+        return ResponseEntity.ok(posts)
+    }
+
+    @GetMapping("/today-comments")
+    fun getTodayComments(): ResponseEntity<List<CommentsWithPostDto>> {
+        val comments = commentService.findTodayComments()
+        return ResponseEntity.ok(comments)
     }
 }
 
