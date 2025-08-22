@@ -12,7 +12,7 @@ import java.util.*
 @Service
 class AuthMailService(
     private val javaMailSender: JavaMailSender,
-    private val emailCodeRepository: EmailCodeRepository
+    private val emailCodeRepository: EmailCodeRepository,
 ) {
     companion object {
         private const val senderEmail = "moai37487@gmail.com"
@@ -23,10 +23,10 @@ class AuthMailService(
         val random = Random()
         val key = StringBuilder()
 
-        repeat(8) {
-            when (random.nextInt(3)) {
-                1 -> key.append((random.nextInt(26) + 65).toChar()) // 대문자
-                2 -> key.append(random.nextInt(10)) // 숫자
+        repeat(6) { // 무조건 6자리
+            when (random.nextInt(2)) { // 0: 대문자, 1: 숫자
+                0 -> key.append((random.nextInt(26) + 65).toChar()) // 대문자
+                1 -> key.append(random.nextInt(10)) // 숫자
             }
         }
         return key.toString()

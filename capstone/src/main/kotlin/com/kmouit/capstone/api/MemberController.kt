@@ -1,6 +1,7 @@
 package com.kmouit.capstone.api
 
 import com.kmouit.capstone.TodoItemStatus
+import com.kmouit.capstone.config.AuthMailService
 import com.kmouit.capstone.domain.jpa.FriendSummaryDto
 import com.kmouit.capstone.domain.jpa.Todo
 import com.kmouit.capstone.domain.jpa.TodoDto
@@ -26,8 +27,42 @@ class MemberController(
     private val memberManageService: MemberManageService,
     private val todoRepository: TodoRepository,
     private val friendInfoRepository: FriendInfoRepository,
-    private val refreshTokenService: RefreshTokenService
-) {
+    private val refreshTokenService: RefreshTokenService,
+    private val authMailService: AuthMailService,
+
+    ) {
+
+    /**
+     * 비밀번호찾기 아이디 검증
+     * 아이디 검증 후 그 아이디의 이메일로 코드 발송
+     */
+    @PostMapping("/verify-id")
+    fun verifyIdAndSendCode(@RequestBody request: Map<String, String>): ResponseEntity<Map<String, Any>> {
+        val username = request["username"]
+        if (username.isNullOrBlank()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(mapOf("success" to false, "message" to "아이디가 입력되지 않았습니다."))
+        }
+
+        val member = memberRepository.findByUsername(username)
+            ?: return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(mapOf("success" to false, "message" to "등록된 아이디가 없습니다."))
+
+        val email = member.email
+            ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(mapOf("success" to false, "message" to "이메일이 등록되어있지 않습니다."))
+
+        authMailService.sendSimpleMessage(email)
+
+        // 이메일도 반환
+        return ResponseEntity.ok(
+            mapOf(
+                "success" to true,
+                "message" to "인증코드를 이메일로 발송했습니다.",
+                "email" to email
+            )
+        )
+    }
 
     @PostMapping("/verify-password")
     fun verifyPassword(
@@ -56,6 +91,22 @@ class MemberController(
         memberManageService.resetPassword(userDetails.member, rawNewPassword)
         return ResponseEntity.ok(mapOf("message" to "passWord 재설정 완료"))
     }
+
+    @PostMapping("/reset-password/no-login")
+    fun resetPasswordWithoutLogin(
+        @RequestBody request: Map<String, String>,
+    ): ResponseEntity<Map<String, String>> {
+        val username = request["username"] ?: return ResponseEntity.badRequest().body(mapOf("message" to "username 누락"))
+        val newPassword = request["newPassword"] ?: return ResponseEntity.badRequest().body(mapOf("message" to "새 비밀번호 누락"))
+
+        val member = memberRepository.findByUsername(username)
+            ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body(mapOf("message" to "가입된 회원이 없습니다."))
+
+        memberManageService.resetPassword(member, newPassword)
+        return ResponseEntity.ok(mapOf("message" to "비밀번호 재설정 완료"))
+    }
+
+
 
     @PostMapping("/reset-email")
     fun resetEmail(

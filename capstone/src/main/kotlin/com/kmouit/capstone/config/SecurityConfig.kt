@@ -56,6 +56,8 @@ class SecurityConfig(
                     .requestMatchers("/api/auth/email-check").permitAll()
                     .requestMatchers("/api/auth/verify-code").permitAll()
                     .requestMatchers("/api/member/login").permitAll()
+                    .requestMatchers("/api/member/verify-id").permitAll()
+                    .requestMatchers("/api/member/reset-password/no-login").permitAll()
                     .requestMatchers("/api/member/admin-test").hasAnyRole("ADMIN")
                     .requestMatchers("/auth/refresh").permitAll()
                     .anyRequest().authenticated()
