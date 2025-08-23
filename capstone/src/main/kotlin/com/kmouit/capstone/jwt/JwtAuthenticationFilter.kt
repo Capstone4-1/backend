@@ -23,7 +23,6 @@ import javax.crypto.spec.SecretKeySpec
 class JwtAuthenticationFilter(
     @Value("\${spring.jwt.secret}") private val secret: String,
     private val customUserDetailService: CustomUserDetailService ,
-    private val memberManageService: MemberManageService
 ) : OncePerRequestFilter() {
 
     private val secretKey: SecretKey = SecretKeySpec(
@@ -31,6 +30,11 @@ class JwtAuthenticationFilter(
         SignatureAlgorithm.HS256.jcaName
     )
 
+    override fun shouldNotFilter(request: HttpServletRequest): Boolean {
+        val path = request.requestURI
+        // refresh 엔드포인트는 필터 안 거치게
+        return path.startsWith("/api/auth/refresh")
+    }
     override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) {
         val authorizationHeader = request.getHeader("Authorization")
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
@@ -51,7 +55,6 @@ class JwtAuthenticationFilter(
                     userDetails, null, userDetails.authorities
                 )
                 SecurityContextHolder.getContext().authentication = authentication
-
             } catch (e: ExpiredJwtException) {
                 sendErrorResponse(response, "TOKEN_EXPIRED", "Access Token has expired")
                 return

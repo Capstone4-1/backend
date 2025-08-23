@@ -17,7 +17,6 @@ import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
-import org.springframework.web.cors.CorsUtils
 
 @Configuration
 @EnableWebSecurity
@@ -25,18 +24,13 @@ class SecurityConfig(
     private val jwtUtil: JWTUtil,
     private val refreshTokenService: RefreshTokenService
 ) {
-
     @Bean
-    fun passwordEncoder(): BCryptPasswordEncoder {
-        return BCryptPasswordEncoder()
-    }
+    fun passwordEncoder(): BCryptPasswordEncoder = BCryptPasswordEncoder()
 
     @Bean
     fun authenticationManager(
         configuration: AuthenticationConfiguration,
-    ): AuthenticationManager {
-        return configuration.authenticationManager
-    }
+    ): AuthenticationManager = configuration.authenticationManager
 
     @Bean
     fun securityFilterChain(
@@ -59,16 +53,18 @@ class SecurityConfig(
                     .requestMatchers("/api/member/verify-id").permitAll()
                     .requestMatchers("/api/member/reset-password/no-login").permitAll()
                     .requestMatchers("/api/member/admin-test").hasAnyRole("ADMIN")
-                    .requestMatchers("/auth/refresh").permitAll()
+                    .requestMatchers("api/auth/refresh").permitAll()
                     .anyRequest().authenticated()
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
-
-            // 🚀 LoginFilter를 UsernamePasswordAuthenticationFilter 전에 실행
-            .addFilterBefore(LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil,refreshTokenService), UsernamePasswordAuthenticationFilter::class.java)
-
-            // 🚀 JWT 인증 필터를 UsernamePasswordAuthenticationFilter 이후에 실행
-            .addFilterAfter(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+            .addFilterBefore(
+                LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshTokenService),
+                UsernamePasswordAuthenticationFilter::class.java
+            )
+            .addFilterAfter(
+                jwtAuthenticationFilter,
+                UsernamePasswordAuthenticationFilter::class.java
+            )
 
         return http.build()
     }
