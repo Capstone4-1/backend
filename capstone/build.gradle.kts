@@ -25,7 +25,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-validation")
 	implementation("org.springframework.boot:spring-boot-starter-web")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
-	implementation("com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.2")
+	//implementation("com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.2")
 	implementation("io.github.microutils:kotlin-logging-jvm:3.0.5")
 	implementation("org.springframework.boot:spring-boot-devtools")
 	implementation("io.jsonwebtoken:jjwt-api:0.11.2")

@@ -1,7 +1,9 @@
 package com.kmouit.capstone.api
 
+import com.kmouit.capstone.domain.jpa.CornerType
+import com.kmouit.capstone.domain.jpa.MealType
 import com.kmouit.capstone.jwt.CustomUserDetails
-import com.kmouit.capstone.service.JobService
+import com.kmouit.capstone.service.MenuService
 import com.kmouit.capstone.service.PostService
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -18,7 +20,7 @@ import java.time.LocalDate
 @RequestMapping("/api/system")
 class SystemController(
     private val postService: PostService,
-    private val jobService: JobService
+    private val menuService: MenuService
 ) {
     @PostMapping("/crawling-notice")
     fun saveCrawledNotices(
@@ -30,13 +32,20 @@ class SystemController(
         return ResponseEntity.ok(mapOf("message" to "크롤링 공지사항 저장 완료 (${noticeList.size}건)"))
     }
 
-    @PostMapping("/crawling-job")
-    fun saveCrawledJobInfo(
-        @RequestBody jobList: List<CrawledJobDto>,
+
+    @PostMapping("/crawling-menu")
+    fun saveCrawledMenu(
+        @RequestBody request: CrawledMenuRequest,
         @AuthenticationPrincipal userDetails: CustomUserDetails
     ): ResponseEntity<Map<String, String>> {
-        jobService.saveCrawledJobs(jobList, userDetails.member.id!!)
-        return ResponseEntity.ok(mapOf("message" to "크롤링된 채용공고 저장 완료 (${jobList.size}건)"))
+        println("식단 컨트롤러 호출")
+        for (item in request.items) {
+            println("item = ${item.date}")
+            println("item = ${item.studentCafeteria}")
+            println("item = ${item.staffCafeteria}")
+        }
+        menuService.saveCrawledMenu(request.items)
+        return ResponseEntity.ok(mapOf("message" to "크롤링 식단 저장 완료"))
     }
 }
 data class CrawledNoticeDto(
@@ -47,20 +56,13 @@ data class CrawledNoticeDto(
     val img: List<String>
 )
 
-data class CrawledJobDto(
-    val title: String,
-    val info: JobDetailDto,
-    val content: JobContentDto
+
+data class CrawledMenuRequest(
+    val items: List<MenuDayDTO>
 )
 
-data class JobDetailDto(
-    val region: String,
-    val employmentType: String,
-    val company: String,
-    val deadline : LocalDate?
-)
-
-data class JobContentDto(
-    val description: String,
-    val url: String
+data class MenuDayDTO(
+    val date: LocalDate,
+    val studentCafeteria: Map<CornerType, List<String>>?, // 학생식당
+    val staffCafeteria: Map<MealType, List<String>>?  // 교직원식당
 )

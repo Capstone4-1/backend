@@ -238,7 +238,6 @@ class PostService(
         pageSize: Int = 5,
         pageNumber: Int = 0,
     ): List<SimplePostDto> {
-        println("디버깅:${pageSize}")
         if (boardType == null) throw IllegalArgumentException("게시판 타입이 null입니다.")
         val pageable = PageRequest.of(pageNumber, pageSize)  // ✅ 넘어온 pageSize 사용
 

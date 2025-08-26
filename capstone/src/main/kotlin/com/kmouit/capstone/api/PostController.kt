@@ -65,7 +65,6 @@ class PostController(
     }
 
 
-
     @DeleteMapping("/{postId}")
     fun deletePost(
         @PathVariable postId: Long,
@@ -239,28 +238,6 @@ class PostController(
                 "favorites" to result
             )
         )
-    }
-
-    @PostMapping("/favorites")
-    fun responseSaveBoardMark(
-        @AuthenticationPrincipal userDetails: CustomUserDetails,
-        @RequestBody request: FavoriteRequest,
-    ): ResponseEntity<Map<String, String>> {
-        postService.saveBoardMarkInfo(userDetails.getId(), request.boardType)
-        return ResponseEntity.ok(
-            mapOf(
-                "message" to "my 즐겨찾기 추가 성공",
-            )
-        )
-    }
-
-    @DeleteMapping("/favorites")
-    fun responseDeleteBoardMark(
-        @AuthenticationPrincipal userDetails: CustomUserDetails,
-        @RequestParam boardType: String,
-    ): ResponseEntity<Map<String, String>> {
-        postService.deleteBoardMarkInfo(userDetails.getId(), boardType)
-        return ResponseEntity.ok(mapOf("message" to "즐겨찾기 삭제 성공"))
     }
 
 

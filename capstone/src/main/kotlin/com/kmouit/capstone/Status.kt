@@ -8,11 +8,17 @@ enum class Role(val value:String) {
     ADMIN("ADMIN"),
     SYSTEM("SYSTEM");
 
-
-
     companion object {
         fun from(value: String): Role? =
             Role.entries.find { it.value == value.uppercase() }
+    }
+}
+enum class InquiryState(val value: String) {
+    PROCESSING("처리중"),
+    COMPLETED("완료");
+    companion object {
+        fun from(value: String): InquiryState? =
+            entries.find { it.value == value }
     }
 }
 

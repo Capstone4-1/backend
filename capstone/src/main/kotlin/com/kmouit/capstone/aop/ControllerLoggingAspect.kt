@@ -20,6 +20,6 @@ class ControllerLoggingAspect {
         val methodName = joinPoint.signature.name
         val args = joinPoint.args.joinToString(", ") { it?.toString() ?: "null" }
 
-        log.info("컨트롤러 호출: $className.$methodName($args)")
+        log.info("controller call: $className.$methodName($args)")
     }
 }
