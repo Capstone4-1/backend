@@ -46,11 +46,11 @@ class MemberController(
 
         val member = memberRepository.findByUsername(username)
             ?: return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(mapOf("success" to false, "message" to "등록된 아이디가 없습니다."))
+                .body(mapOf("success" to false, "message" to "일치하는 회원정보가 없습니다. 다시 입력해주세요."))
 
         val email = member.email
             ?: return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(mapOf("success" to false, "message" to "이메일이 등록되어있지 않습니다."))
+                .body(mapOf("success" to false, "message" to "이메일이 등록되어 있지 않습니다."))
 
         authMailService.sendSimpleMessage(email)
 
