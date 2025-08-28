@@ -43,20 +43,41 @@ class MemberManageService(
         if (file.size > maxSizeInBytes) {
             throw FileSizeLimitExceededException("파일 크기는 ${MAX_FILE_SIZE / 1024 / 1024}MB 이하여야 합니다.")
         }
-        val member =
-            memberRepository.findById(id).orElseThrow { NoSuchElementException("존재하지 않는 회원 : setProfileImage") }
+
+        val member = memberRepository.findById(id)
+            .orElseThrow { NoSuchElementException("존재하지 않는 회원 : setProfileImage") }
+
+        // 기존 이미지가 기본 이미지가 아니면 S3에서 삭제
+        if (!member.profileImageUrl.isNullOrBlank() && member.profileImageUrl != DEFAULT_PROFILE_IMAGE_URL) {
+            uploadService.deleteS3Object(uploadService.extractS3KeyFromUrl(member.profileImageUrl!!))
+        }
+        if (!member.thumbnailUrl.isNullOrBlank()) {
+            uploadService.deleteS3Object(uploadService.extractS3KeyFromUrl(member.thumbnailUrl!!))
+        }
 
         val (originalUrl, thumbnailUrl) = uploadService.uploadWithThumbnail(file)
-        member.profileImageUrl = originalUrl  // 혹은 originalUrl, 원하는 쪽 선택
+        member.profileImageUrl = originalUrl
         member.thumbnailUrl = thumbnailUrl
-        return originalUrl  // 또는 originalUrl
+
+        return originalUrl
     }
 
     @Transactional
     fun deleteProfileImage(id: Long): String {
-        val member =
-            memberRepository.findById(id).orElseThrow { NoSuchElementException("존재하지 않는 회원 : deleteProfileImage") }
+        val member = memberRepository.findById(id)
+            .orElseThrow { NoSuchElementException("존재하지 않는 회원 : deleteProfileImage") }
+
+        //  기존 이미지 삭제 (기본 이미지가 아닐 때만)
+        if (!member.profileImageUrl.isNullOrBlank() && member.profileImageUrl != DEFAULT_PROFILE_IMAGE_URL) {
+            uploadService.deleteS3Object(uploadService.extractS3KeyFromUrl(member.profileImageUrl!!))
+        }
+        if (!member.thumbnailUrl.isNullOrBlank()) {
+            uploadService.deleteS3Object(uploadService.extractS3KeyFromUrl(member.thumbnailUrl!!))
+        }
+
+        //  기본 이미지로 변경
         member.profileImageUrl = DEFAULT_PROFILE_IMAGE_URL
+        member.thumbnailUrl = null
 
         return member.profileImageUrl!!
     }

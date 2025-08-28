@@ -149,8 +149,8 @@ class S3UploadService(
 
         val baos = ByteArrayOutputStream()
 
-        Thumbnails.of(bufferedImage) // ✅ vararg 필요 없음
-            .size(200, 200)
+        Thumbnails.of(bufferedImage)
+            .height(400)              // 세로 400 고정, 가로는 비율 맞춰 자동
             .outputFormat("jpg")
             .toOutputStream(baos)
 

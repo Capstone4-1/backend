@@ -11,4 +11,5 @@ import org.springframework.stereotype.Repository
 interface PostLikeInfoRepository : JpaRepository <PostLikeInfo, Long> {
     fun findByMemberAndPosts(member: Member, posts: Posts): PostLikeInfo?
     fun existsByMemberIdAndPostsId(currentUserId: Long, id: Long): Boolean
+    fun findAllByMember(member: Member): List<PostLikeInfo>
 }

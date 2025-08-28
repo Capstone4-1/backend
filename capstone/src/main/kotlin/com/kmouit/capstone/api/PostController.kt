@@ -227,15 +227,15 @@ class PostController(
     }
 
 
-    @GetMapping("/favorites")
+    @GetMapping("/like")
     fun getMyFavorites(
         @AuthenticationPrincipal userDetails: CustomUserDetails,
     ): ResponseEntity<Map<String, Any>> {
-        val result = postService.findMyFavorites(userDetails.getId())
+        val result = postService.findMyLikes(userDetails.getId())
         return ResponseEntity.ok(
             mapOf(
-                "message" to "my 즐겨찾기 조회 성공",
-                "favorites" to result
+                "message" to "좋아요 한 글 조회 성공",
+                "likes" to result
             )
         )
     }

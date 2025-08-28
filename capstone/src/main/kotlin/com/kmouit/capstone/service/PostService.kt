@@ -352,14 +352,24 @@ class PostService(
         if (post.member?.id != currentUser.id) {
             throw CustomAccessDeniedException("본인의 게시글만 삭제할 수 있습니다.")
         }
-
         // ✅ 이미지 및 썸네일 S3 삭제
         s3UploadService.deleteAllImages(post.imageUrls, post.thumbnailUrl)
-
         // ✅ 게시글 DB 삭제
         postRepository.delete(post)
     }
 
+    fun findMyLikes(memberId: Long): List<SimplePostDto> {
+        val member = memberRepository.findById(memberId)
+            .orElseThrow { NoSuchElementException("존재하지 않는 회원") }
+
+        val likedPosts = postLikeInfoRepository.findAllByMember(member)
+            .map { it.posts }  // Post 객체만 추출
+
+        return likedPosts.map { post ->
+            val commentCount = commentRepository.countByPostId(post!!.id!!)
+            post.toSimpleDto(memberId, commentCount)
+        }
+    }
 
     @Transactional
     fun likePost(postId: Long, memberId: Long): Int {
@@ -373,7 +383,6 @@ class PostService(
         postLikeInfoRepository.save(postLikeInfo)
         return currentCount
     }
-
 
     @Transactional
     fun unlikePost(postId: Long, memberId: Long): Int {
@@ -419,6 +428,8 @@ class PostService(
             post.toSimpleDto(currentUserId = null, commentCount = commentCount)
         }
     }
+
+
 
 
 }

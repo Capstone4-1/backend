@@ -74,6 +74,11 @@ class Member(
         notice.member = null
         notices.remove(notice)
     }
+
+    override fun toString(): String {
+        return "(id=$id, name=$name)"
+    }
+
 }
 
 

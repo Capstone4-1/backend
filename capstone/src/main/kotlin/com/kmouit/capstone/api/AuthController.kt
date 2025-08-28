@@ -29,7 +29,6 @@ class AuthController(
 ) {
     @PostMapping("/refresh")
     fun refreshToken(@RequestBody request: RefreshTokenRequest): ResponseEntity<Any> {
-        println("리프레시 호출")
         val refreshToken = request.refreshToken
         val username = try {
             jwtUtil.getUsername(refreshToken)  // 리프레시 토큰에서 username 추출
