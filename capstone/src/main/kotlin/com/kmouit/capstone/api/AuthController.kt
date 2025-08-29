@@ -66,7 +66,7 @@ class AuthController(
         }
 
         mailService.sendSimpleMessage(mailDto.email)
-        return ResponseEntity.ok(mapOf("message" to "인증번호 송신 성공"))
+        return ResponseEntity.ok(mapOf("message" to "인증코드 송신 성공"))
     }
     data class MailDto(
         var email: String,
@@ -84,11 +84,11 @@ class AuthController(
             }
             VerificationResult.INVALID_CODE -> {
                 ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(mapOf("message" to "인증번호가 올바르지 않습니다."))
+                    .body(mapOf("message" to "인증코드가 올바르지 않습니다."))
             }
             VerificationResult.EXPIRED -> {
                 ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(mapOf("message" to "인증번호 유효시간이 만료되었습니다."))
+                    .body(mapOf("message" to "인증코드 유효시간이 만료되었습니다."))
             }
         }
     }

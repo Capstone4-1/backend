@@ -15,7 +15,6 @@ import java.util.*
 class AuthMailService(
     private val javaMailSender: JavaMailSender,
     private val emailCodeRepository: EmailCodeRepository,
-    @Value("\${auth-code-expiration-millis}") private val expirationMillis: Long
 ) {
     companion object {
         private const val senderEmail = "moai37487@gmail.com"
