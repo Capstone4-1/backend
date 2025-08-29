@@ -1,10 +1,12 @@
 package com.kmouit.capstone.config
 
+import com.kmouit.capstone.VerificationResult
 import com.kmouit.capstone.domain.redis.EmailCode
 import com.kmouit.capstone.repository.redis.EmailCodeRepository
 import jakarta.mail.Message
 import jakarta.mail.MessagingException
 import jakarta.mail.internet.MimeMessage
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.stereotype.Service
 import java.util.*
@@ -13,6 +15,7 @@ import java.util.*
 class AuthMailService(
     private val javaMailSender: JavaMailSender,
     private val emailCodeRepository: EmailCodeRepository,
+    @Value("\${auth-code-expiration-millis}") private val expirationMillis: Long
 ) {
     companion object {
         private const val senderEmail = "moai37487@gmail.com"
@@ -65,13 +68,15 @@ class AuthMailService(
     }
 
     // 코드 검증
-    fun verifyCode(email: String, code: String): Boolean {
-        val savedCode = emailCodeRepository.findById(email).map { it.code }.orElse(null)
-        val isValid = savedCode != null && savedCode == code
 
-        if (isValid) {
-            emailCodeRepository.deleteById(email)
+    fun verifyCode(email: String, code: String): VerificationResult {
+        val emailCode = emailCodeRepository.findById(email).orElse(null)
+            ?: return VerificationResult.EXPIRED   // Redis에 없으면 만료된 것
+
+        return if (emailCode.code == code) {
+            VerificationResult.SUCCESS
+        } else {
+            VerificationResult.INVALID_CODE
         }
-        return isValid
     }
 }

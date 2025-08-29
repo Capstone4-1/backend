@@ -20,6 +20,9 @@ class AdminController(
     private val commentService: CommentService
 ) {
 
+
+    //권한 확인
+
     @GetMapping("search-users")
     fun responseSearchUserByAdmin(
         @RequestParam(required = false) username: String?,

@@ -9,6 +9,8 @@ class InquiryItem(
     var title: String,
     var content: String,
 
+    var reply  : String? = null,
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id")
     var member: Member? = null,
@@ -19,6 +21,7 @@ class InquiryItem(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null
+
     var createDateTime: LocalDateTime? = null
 
     var completeDateTime: LocalDateTime? = null

@@ -78,3 +78,9 @@ enum class TodoItemStatus(val value: String) {
             TodoItemStatus.entries.find { it.value == value.uppercase() }
     }
 }
+
+enum class VerificationResult {
+    SUCCESS,
+    INVALID_CODE,
+    EXPIRED
+}

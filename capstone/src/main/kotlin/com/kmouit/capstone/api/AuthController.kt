@@ -1,5 +1,6 @@
 package com.kmouit.capstone.api
 
+import com.kmouit.capstone.VerificationResult
 import com.kmouit.capstone.config.AuthMailService
 import com.kmouit.capstone.dtos.RefreshTokenRequest
 import com.kmouit.capstone.dtos.TokenResponse
@@ -71,18 +72,27 @@ class AuthController(
         var email: String,
     )
 
+
+
     @PostMapping("/verify-code")
     fun verifyCode(
         @RequestBody verifyDto: VerifyDto,
     ): ResponseEntity<Map<String, String>> {
-        val isValid = mailService.verifyCode(verifyDto.email, verifyDto.code)
-        return if (isValid) {
-            ResponseEntity.ok(mapOf("message" to "인증 성공"))
-        } else {
-            ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(mapOf("message" to "인증번호가 올바르지 않습니다."))
+        return when (val result = mailService.verifyCode(verifyDto.email, verifyDto.code)) {
+            VerificationResult.SUCCESS -> {
+                ResponseEntity.ok(mapOf("message" to "인증 성공"))
+            }
+            VerificationResult.INVALID_CODE -> {
+                ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(mapOf("message" to "인증번호가 올바르지 않습니다."))
+            }
+            VerificationResult.EXPIRED -> {
+                ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(mapOf("message" to "인증번호 유효시간이 만료되었습니다."))
+            }
         }
     }
+
 
     data class VerifyDto(
         var email: String,

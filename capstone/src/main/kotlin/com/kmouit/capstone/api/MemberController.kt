@@ -1,8 +1,10 @@
 package com.kmouit.capstone.api
 
+import com.kmouit.capstone.Role
 import com.kmouit.capstone.TodoItemStatus
 import com.kmouit.capstone.config.AuthMailService
 import com.kmouit.capstone.domain.jpa.FriendSummaryDto
+import com.kmouit.capstone.domain.jpa.Member
 import com.kmouit.capstone.domain.jpa.Todo
 import com.kmouit.capstone.domain.jpa.TodoDto
 import com.kmouit.capstone.dtos.*
@@ -18,6 +20,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
+import kotlin.jvm.optionals.getOrNull
 
 @PreAuthorize("permitAll()")
 @RestController
@@ -31,6 +34,28 @@ class MemberController(
     private val authMailService: AuthMailService,
 
     ) {
+
+    @GetMapping("/check-role")
+    fun checkRole(
+        @AuthenticationPrincipal userDetails: CustomUserDetails?,
+        @RequestParam role: String,
+    ): ResponseEntity<out Map<String, Any>> {
+        if (userDetails == null) {
+            return ResponseEntity.status(401).body(mapOf("hasRole" to false))
+        }
+
+        val member = userDetails.member
+        val requiredRole = Role.from(role)
+        val hasRole = requiredRole?.let { r -> member.roles.any { it.name == r.name } } ?: false
+
+        return ResponseEntity.ok(
+            mapOf(
+                "hasRole" to hasRole,
+                "message" to "권한 인증 성공",
+            )
+        )
+    }
+
 
     /**
      * 비밀번호찾기 아이디 검증
@@ -97,7 +122,8 @@ class MemberController(
         @RequestBody request: Map<String, String>,
     ): ResponseEntity<Map<String, String>> {
         val username = request["username"] ?: return ResponseEntity.badRequest().body(mapOf("message" to "username 누락"))
-        val newPassword = request["newPassword"] ?: return ResponseEntity.badRequest().body(mapOf("message" to "새 비밀번호 누락"))
+        val newPassword =
+            request["newPassword"] ?: return ResponseEntity.badRequest().body(mapOf("message" to "새 비밀번호 누락"))
 
         val member = memberRepository.findByUsername(username)
             ?: return ResponseEntity.status(HttpStatus.NOT_FOUND).body(mapOf("message" to "가입된 회원이 없습니다."))
@@ -105,7 +131,6 @@ class MemberController(
         memberManageService.resetPassword(member, newPassword)
         return ResponseEntity.ok(mapOf("message" to "비밀번호 재설정 완료"))
     }
-
 
 
     @PostMapping("/reset-email")
@@ -159,9 +184,7 @@ class MemberController(
             .orElseThrow { NoSuchElementException("대상 회원이 존재하지 않습니다") }
 
         val currentUserId = userDetails.getId()
-
         val isFriend = friendInfoRepository.areFriends(currentUserId, userId)
-
         return ResponseEntity.ok(FriendSummaryDto(member, isFriend))
     }
 
