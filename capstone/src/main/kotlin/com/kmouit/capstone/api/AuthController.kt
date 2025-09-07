@@ -88,7 +88,7 @@ class AuthController(
             }
             VerificationResult.EXPIRED -> {
                 ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(mapOf("message" to "인증코드 유효시간이 만료되었습니다."))
+                    .body(mapOf("message" to "만료된 인증코드입니다."))
             }
         }
     }
