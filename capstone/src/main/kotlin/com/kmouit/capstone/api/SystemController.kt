@@ -1,5 +1,6 @@
 package com.kmouit.capstone.api
 
+import com.kmouit.capstone.BoardType
 import com.kmouit.capstone.domain.jpa.CornerType
 import com.kmouit.capstone.domain.jpa.MealType
 import com.kmouit.capstone.jwt.CustomUserDetails
@@ -22,16 +23,26 @@ class SystemController(
     private val postService: PostService,
     private val menuService: MenuService
 ) {
-    @PostMapping("/crawling-notice")
-    fun saveCrawledNotices(
+
+    //학교 공지
+    @PostMapping("/crawling-notice/univ")
+    fun saveUnivNotices(
         @RequestBody noticeList: List<CrawledNoticeDto>,
         @AuthenticationPrincipal userDetails: CustomUserDetails
     ): ResponseEntity<Map<String, String>> {
-
-        postService.saveCrawledNotices(noticeList, userDetails.member.id!!)
-        return ResponseEntity.ok(mapOf("message" to "크롤링 공지사항 저장 완료 (${noticeList.size}건)"))
+        postService.saveCrawledNotices(noticeList, userDetails.member.id!!, BoardType.NOTICE_UNIV)
+        return ResponseEntity.ok(mapOf("message" to "학교공지 저장 완료 (${noticeList.size}건)"))
     }
 
+    //학과 공지
+    @PostMapping("/crawling-notice/dept")
+    fun saveDeptNotices(
+        @RequestBody noticeList: List<CrawledNoticeDto>,
+        @AuthenticationPrincipal userDetails: CustomUserDetails
+    ): ResponseEntity<Map<String, String>> {
+        postService.saveCrawledNotices(noticeList, userDetails.member.id!!, BoardType.NOTICE_DEPT)
+        return ResponseEntity.ok(mapOf("message" to "학과공지 저장 완료 (${noticeList.size}건)"))
+    }
 
     @PostMapping("/crawling-menu")
     fun saveCrawledMenu(

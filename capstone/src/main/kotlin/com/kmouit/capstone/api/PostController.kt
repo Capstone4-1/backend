@@ -22,6 +22,7 @@ class PostController(
     private val commentService: CommentService,
 ) {
 
+    @PreAuthorize("hasRole('STUDENT')")
     @PostMapping("/{postId}/comments")
     fun createComment(
         @PathVariable postId: Long,
@@ -32,6 +33,8 @@ class PostController(
         return ResponseEntity.ok(mapOf("message" to "댓글 등록 성공"))
     }
 
+
+    @PreAuthorize("hasRole('STUDENT')")
     @PostMapping("/post-up")
     fun responsePostUp(
         @RequestBody requestDto: PostRequestDto,
@@ -43,6 +46,7 @@ class PostController(
         )
     }
 
+    @PreAuthorize("hasRole('STUDENT')")
     @PutMapping("/post-up/{postId}")
     fun updatePost(
         @PathVariable postId: Long,
@@ -55,6 +59,7 @@ class PostController(
         )
     }
 
+    @PreAuthorize("hasRole('STUDENT')")
     @PostMapping("/lecture-post-up")
     fun createLecturePost(
         @RequestBody requestDto: LecturePostRequestDto,
@@ -65,6 +70,7 @@ class PostController(
     }
 
 
+    @PreAuthorize("hasRole('STUDENT')")
     @DeleteMapping("/{postId}")
     fun deletePost(
         @PathVariable postId: Long,

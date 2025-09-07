@@ -5,6 +5,7 @@ import com.kmouit.capstone.domain.jpa.*
 import com.kmouit.capstone.repository.jpa.MenuItemRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 
 @Service
 class MenuService(
@@ -62,4 +63,33 @@ class MenuService(
             println("저장할 신규 메뉴가 없습니다.")
         }
     }
+
+    fun getDailyMenu(year: Int, month: Int, day: Int): MenuDayDTO {
+        val date = LocalDate.of(year, month, day)
+        val items = menuItemRepository.findByDate(date)
+
+        val studentMenu = items
+            .filter { it.cafeteriaType == CafeteriaType.STUDENT }
+            .groupBy { it.cornerType!! }
+            .mapValues { entry -> entry.value.map { it.name ?: "" } }
+            .ifEmpty { null }
+
+        val staffMenu = items
+            .filter { it.cafeteriaType == CafeteriaType.STAFF }
+            .groupBy { it.mealType!! }
+            .mapValues { entry -> entry.value.map { it.name ?: "" } }
+            .ifEmpty { null }
+
+        return MenuDayDTO(
+            date = date,
+            studentCafeteria = studentMenu,
+            staffCafeteria = staffMenu
+        )
+    }
 }
+
+data class MenuDayDTO(
+    val date: LocalDate,
+    val studentCafeteria: Map<CornerType, List<String>>? = null,
+    val staffCafeteria: Map<MealType, List<String>>? = null
+)

@@ -26,4 +26,6 @@ interface MenuItemRepository :JpaRepository<MenuItem, Long>{
         cafeteriaType: CafeteriaType,
         mealType: MealType
     ): Boolean
+
+    fun findByDate(date: LocalDate): List<MenuItem>
 }

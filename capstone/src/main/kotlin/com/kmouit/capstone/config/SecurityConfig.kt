@@ -8,6 +8,8 @@ import com.kmouit.capstone.service.RefreshTokenService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -23,6 +25,18 @@ class SecurityConfig(
     private val jwtUtil: JWTUtil,
     private val refreshTokenService: RefreshTokenService
 ) {
+
+    @Bean
+    fun roleHierarchy(): RoleHierarchy {
+        return RoleHierarchyImpl.fromHierarchy(
+            """
+        ROLE_ADMIN > ROLE_MANAGER
+        ROLE_MANAGER > ROLE_PROFESSOR
+        ROLE_PROFESSOR > ROLE_STUDENT
+        ROLE_STUDENT > ROLE_USER
+        """.trimIndent()
+        )
+    }
     @Bean
     fun passwordEncoder(): BCryptPasswordEncoder = BCryptPasswordEncoder()
 
@@ -52,7 +66,8 @@ class SecurityConfig(
                     .requestMatchers("/api/member/verify-id").permitAll()
                     .requestMatchers("/api/member/reset-password/no-login").permitAll()
                     .requestMatchers("/api/member/admin-test").hasAnyRole("ADMIN")
-                    .requestMatchers("api/auth/refresh").permitAll()
+                    .requestMatchers("/api/auth/refresh").permitAll()
+                    .requestMatchers("/api/health").permitAll()
                     .anyRequest().authenticated()
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }

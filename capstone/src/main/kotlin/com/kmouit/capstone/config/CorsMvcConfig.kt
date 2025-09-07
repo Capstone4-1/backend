@@ -9,6 +9,7 @@ class CorsMvcConfig : WebMvcConfigurer {
 
     override fun addCorsMappings(registry: CorsRegistry) {
         registry.addMapping("/**") // 모든 경로에 대해
+            //.allowedOriginPatterns("https://kmoumoai.site") // React 서버 주소
             .allowedOriginPatterns("*") // React 서버 주소
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // 허용할 HTTP 메서드
             .allowCredentials(true); // 인증 정보 포함 허용

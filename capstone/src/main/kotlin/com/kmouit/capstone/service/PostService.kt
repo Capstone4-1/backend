@@ -166,9 +166,14 @@ class PostService(
 
 
     @Transactional
-    fun saveCrawledNotices(noticeList: List<CrawledNoticeDto>, memberId: Long) {
+    fun saveCrawledNotices(
+        noticeList: List<CrawledNoticeDto>,
+        memberId: Long,
+        boardType: BoardType // 학교공지인지 학과공지인지 구분
+    ) {
         val member = memberRepository.findById(memberId)
             .orElseThrow { NoSearchMemberException(HttpStatus.NOT_FOUND, "존재하지 않는 회원") }
+
         for (crawledNoticeDto in noticeList) {
             var originalUrlOnS3: String? = null
             var thumbnailUrl: String? = null
@@ -191,7 +196,7 @@ class PostService(
 
             val newPost = Posts().apply {
                 this.member = member
-                this.boardType = BoardType.NOTICE_C
+                this.boardType = boardType   // 👈 여기서 타입 주입
                 this.targetUrl = crawledNoticeDto.url
                 this.title = crawledNoticeDto.title
                 this.content = crawledNoticeDto.content
@@ -203,6 +208,7 @@ class PostService(
             postRepository.save(newPost)
         }
     }
+
 
 
 

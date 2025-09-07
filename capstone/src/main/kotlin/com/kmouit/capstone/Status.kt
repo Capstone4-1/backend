@@ -14,14 +14,25 @@ enum class Role(val value:String) {
     }
 }
 enum class InquiryState(val value: String) {
-    PROCESSING("처리중"),
-    COMPLETED("완료");
+    PROCESSING("PROCESSING"),
+    COMPLETED("COMPLETED");
     companion object {
         fun from(value: String): InquiryState? =
             entries.find { it.value == value }
     }
 }
 
+enum class InquiryCategory(val value: String) {
+    ROLE_REQUEST("ROLE_REQUEST"), //권한
+    ACCOUNT_ISSUE("ACCOUNT_ISSUE"), //계정 이슈
+    GENERAL("GENERAL"),
+    REPORT("REPORT"); //신고
+
+    companion object {
+        fun from(value: String): InquiryCategory? =
+            entries.find { it.value == value }
+    }
+}
 enum class NoticeInfoStatus{
     UNREAD, READ
 }
@@ -37,7 +48,8 @@ enum class BoardType(val value: String) {
     MARKET("MARKET"),
     SECRET("SECRET"),
     REVIEW("REVIEW"),
-    NOTICE_C("NOTICE_C"),
+    NOTICE_UNIV("NOTICE_UNIV"),
+    NOTICE_DEPT("NOTICE_DEPT"),
 
     //lecture 관련 타입
     LECTURE_Q("LECTURE_Q"), //질문

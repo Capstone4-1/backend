@@ -5,6 +5,7 @@ import com.kmouit.capstone.exception.*
 import mu.KotlinLogging
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.authorization.AuthorizationDeniedException
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 
@@ -59,6 +60,15 @@ class ExceptionHandler {
         logger.warn { "업로드 파일 크기 초과: ${e.message}" }
         return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
             .body(ErrorResponse(HttpStatus.PAYLOAD_TOO_LARGE.value(), e.message ?: "파일 크기 초과"))
+    }
+
+
+
+    @ExceptionHandler(AuthorizationDeniedException::class)
+    fun handleAuthorizationDenied(e: AuthorizationDeniedException): ResponseEntity<ErrorResponse> {
+        logger.warn { "권한이 없습니다: ${e.message}" }
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(ErrorResponse(HttpStatus.FORBIDDEN.value(),  "권한이 없습니다: ${e.message}"))
     }
 }
 
