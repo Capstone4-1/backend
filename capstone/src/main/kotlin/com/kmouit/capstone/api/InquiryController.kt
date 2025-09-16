@@ -1,7 +1,6 @@
 package com.kmouit.capstone.api
 
 import com.kmouit.capstone.InquiryCategory
-import com.kmouit.capstone.InquiryState
 import com.kmouit.capstone.Role
 import com.kmouit.capstone.domain.jpa.InquiryItem
 import com.kmouit.capstone.jwt.CustomUserDetails
@@ -46,11 +45,26 @@ class InquiryController(
         val pageResult: Page<InquiryDto> = inquiryService.getInquiries(page, size, state)
         return assembler.toModel(pageResult)
     }
+
+    @PostMapping("/inquiry/{id}/complete")
+    fun completeInquiry(
+        @PathVariable id: Long,
+        @RequestBody request: CompleteRequest,
+        @AuthenticationPrincipal userDetails: CustomUserDetails
+    ): ResponseEntity<Map<String, Any>> {
+        inquiryService.completeInquiry(id, request.answer, userDetails.member)
+        return ResponseEntity.ok(mapOf("message" to "문의 완료 처리 및 답변 저장 완료"))
+    }
+
 }
 
 data class InquiryRequest(
     val title: String,
     val content: String,
-    val category: InquiryCategory = InquiryCategory.GENERAL, // 문의 유형
+    val category: InquiryCategory, // 문의 유형
     val targetRole: Role? = null, // 권한 요청일 때만 사용
+)
+
+data class CompleteRequest(
+    val answer: String
 )

@@ -50,10 +50,9 @@ class MemberManageService(
         // 기존 이미지가 기본 이미지가 아니면 S3에서 삭제
         if (!member.profileImageUrl.isNullOrBlank() && member.profileImageUrl != DEFAULT_PROFILE_IMAGE_URL) {
             uploadService.deleteS3Object(uploadService.extractS3KeyFromUrl(member.profileImageUrl!!))
-        }
-        if (!member.thumbnailUrl.isNullOrBlank()) {
             uploadService.deleteS3Object(uploadService.extractS3KeyFromUrl(member.thumbnailUrl!!))
         }
+
 
         val (originalUrl, thumbnailUrl) = uploadService.uploadWithThumbnail(file)
         member.profileImageUrl = originalUrl
@@ -70,14 +69,12 @@ class MemberManageService(
         //  기존 이미지 삭제 (기본 이미지가 아닐 때만)
         if (!member.profileImageUrl.isNullOrBlank() && member.profileImageUrl != DEFAULT_PROFILE_IMAGE_URL) {
             uploadService.deleteS3Object(uploadService.extractS3KeyFromUrl(member.profileImageUrl!!))
-        }
-        if (!member.thumbnailUrl.isNullOrBlank()) {
             uploadService.deleteS3Object(uploadService.extractS3KeyFromUrl(member.thumbnailUrl!!))
         }
 
-        //  기본 이미지로 변경
+
         member.profileImageUrl = DEFAULT_PROFILE_IMAGE_URL
-        member.thumbnailUrl = null
+        member.thumbnailUrl = DEFAULT_PROFILE_THUMBNAIL_URL
 
         return member.profileImageUrl!!
     }
@@ -104,21 +101,18 @@ class MemberManageService(
 
     @Transactional
     fun join(joinForm: JoinForm) {
-        if (memberRepository.findByUsername(joinForm.username) != null) {
-            throw DuplicateUsernameException("이미 가입된 id 입니다")
-        }
         val member = Member(
             username = joinForm.username,
             password = passwordEncoder.encode(joinForm.password),
             name = joinForm.name,
             email = joinForm.email,
-            nickname = joinForm.name,
+            nickname = joinForm.nickname,
             joinDate = LocalDateTime.now(),
             profileImageUrl = DEFAULT_PROFILE_IMAGE_URL,
             thumbnailUrl = DEFAULT_PROFILE_THUMBNAIL_URL,
-            intro = "${joinForm.name}입니다. 잘 부탁드립니다."
+            intro = "${joinForm.nickname}입니다. 잘 부탁드립니다."
         )
-        member.roles.add(USER)
+        member.roles.add(STUDENT)
         memberRepository.save(member)
     }
 
@@ -218,5 +212,12 @@ class MemberManageService(
 
     fun isEmailRegistered(email: String): Boolean {
         return memberRepository.existsByEmail(email)
+    }
+
+    fun isUsernameRegistered(username: String): Boolean {
+        return memberRepository.existsByUsername(username)
+    }
+    fun isNicknameRegistered(nickname: String): Boolean {
+        return memberRepository.existsByNickname(nickname)
     }
 }

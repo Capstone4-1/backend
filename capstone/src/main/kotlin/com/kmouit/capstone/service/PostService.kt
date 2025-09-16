@@ -175,6 +175,15 @@ class PostService(
             .orElseThrow { NoSearchMemberException(HttpStatus.NOT_FOUND, "존재하지 않는 회원") }
 
         for (crawledNoticeDto in noticeList) {
+
+            val exists = postRepository.existsByBoardTypeAndTitleAndCreatedDate(
+                boardType, crawledNoticeDto.title, crawledNoticeDto.date.atStartOfDay()
+            )
+            if (exists) {
+                println("⚠️ 중복된 게시글 발견, 저장 생략: ${crawledNoticeDto.title}")
+                continue
+            }
+
             var originalUrlOnS3: String? = null
             var thumbnailUrl: String? = null
 
@@ -358,6 +367,7 @@ class PostService(
         if (post.member?.id != currentUser.id) {
             throw CustomAccessDeniedException("본인의 게시글만 삭제할 수 있습니다.")
         }
+        postLikeInfoRepository.deleteByPostId(postId)
         // ✅ 이미지 및 썸네일 S3 삭제
         s3UploadService.deleteAllImages(post.imageUrls, post.thumbnailUrl)
         // ✅ 게시글 DB 삭제

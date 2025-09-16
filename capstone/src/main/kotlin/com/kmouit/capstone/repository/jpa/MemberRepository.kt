@@ -27,5 +27,6 @@ interface MemberRepository : JpaRepository<Member, Long> , JpaSpecificationExecu
     fun findMemberAndNoticesById(@Param("id") id: Long): Member?
     fun findByNickname(nickname: String): Member?
     fun existsByEmail(email: String): Boolean
+    fun existsByUsername(username: String): Boolean
 
 }

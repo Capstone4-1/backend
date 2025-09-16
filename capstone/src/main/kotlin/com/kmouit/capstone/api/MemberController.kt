@@ -4,7 +4,6 @@ import com.kmouit.capstone.Role
 import com.kmouit.capstone.TodoItemStatus
 import com.kmouit.capstone.config.AuthMailService
 import com.kmouit.capstone.domain.jpa.FriendSummaryDto
-import com.kmouit.capstone.domain.jpa.Member
 import com.kmouit.capstone.domain.jpa.Todo
 import com.kmouit.capstone.domain.jpa.TodoDto
 import com.kmouit.capstone.dtos.*
@@ -20,7 +19,6 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
-import kotlin.jvm.optionals.getOrNull
 
 @PreAuthorize("permitAll()")
 @RestController
@@ -56,6 +54,15 @@ class MemberController(
         )
     }
 
+
+    @GetMapping("/my-roles")
+    fun getMyRoles(@AuthenticationPrincipal userDetails: CustomUserDetails?): ResponseEntity<Any> {
+        if (userDetails == null) {
+            return ResponseEntity.status(401).body(mapOf("roles" to emptyList<String>()))
+        }
+        val roles = userDetails.member.roles.map { it.name }
+        return ResponseEntity.ok(mapOf("roles" to roles))
+    }
 
     /**
      * 비밀번호찾기 아이디 검증

@@ -27,7 +27,7 @@ class Member(
     @NotNull
     var name: String? = null,
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     @NotNull
     var email: String? = null,
 

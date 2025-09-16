@@ -30,13 +30,16 @@ class SecurityConfig(
     fun roleHierarchy(): RoleHierarchy {
         return RoleHierarchyImpl.fromHierarchy(
             """
-        ROLE_ADMIN > ROLE_MANAGER
-        ROLE_MANAGER > ROLE_PROFESSOR
-        ROLE_PROFESSOR > ROLE_STUDENT
+        ROLE_SYSTEM > ROLE_ADMIN
+        ROLE_ADMIN > ROLE_PROFESSOR
+        ROLE_PROFESSOR > ROLE_MANAGER
+        ROLE_MANAGER > ROLE_STUDENT_COUNCIL
+        ROLE_STUDENT_COUNCIL > ROLE_STUDENT
         ROLE_STUDENT > ROLE_USER
         """.trimIndent()
         )
     }
+
     @Bean
     fun passwordEncoder(): BCryptPasswordEncoder = BCryptPasswordEncoder()
 
@@ -62,6 +65,7 @@ class SecurityConfig(
                     .requestMatchers("/api/member/join").permitAll()
                     .requestMatchers("/api/auth/email-check").permitAll()
                     .requestMatchers("/api/auth/verify-code").permitAll()
+                    .requestMatchers("/api/auth/check-duplicate").permitAll()
                     .requestMatchers("/api/member/login").permitAll()
                     .requestMatchers("/api/member/verify-id").permitAll()
                     .requestMatchers("/api/member/reset-password/no-login").permitAll()

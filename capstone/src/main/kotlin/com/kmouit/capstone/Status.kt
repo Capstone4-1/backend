@@ -3,8 +3,9 @@ package com.kmouit.capstone
 enum class Role(val value:String) {
     USER("USER"),
     STUDENT("STUDENT"),
-    MANAGER("MANAGER"),
     PROFESSOR("PROFESSOR"),
+    STUDENT_COUNCIL("STUDENT_COUNCIL"),
+    MANAGER("MANAGER"),
     ADMIN("ADMIN"),
     SYSTEM("SYSTEM");
 
@@ -50,6 +51,7 @@ enum class BoardType(val value: String) {
     REVIEW("REVIEW"),
     NOTICE_UNIV("NOTICE_UNIV"),
     NOTICE_DEPT("NOTICE_DEPT"),
+    NOTICE_SC("NOTICE_SC"),
 
     //lecture 관련 타입
     LECTURE_Q("LECTURE_Q"), //질문

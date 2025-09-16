@@ -5,6 +5,7 @@ import com.kmouit.capstone.InquiryState
 import com.kmouit.capstone.Role
 import com.kmouit.capstone.api.InquiryRequest
 import com.kmouit.capstone.domain.jpa.InquiryItem
+import com.kmouit.capstone.domain.jpa.Member
 import com.kmouit.capstone.repository.jpa.InquiryItemRepository
 import com.kmouit.capstone.repository.jpa.MemberRepository
 import org.springframework.data.domain.Page
@@ -52,18 +53,35 @@ class InquiryService(
                 .map { InquiryDto.from(it) }
         }
     }
+
+
+    @Transactional
+    fun completeInquiry(id: Long, answer: String, member: Member) {
+        val responder = memberRepository.findById(member.id!!).orElseThrow { NoSuchElementException("존재하지않는 회원") }
+        val inquiryItem = inquiryItemRepository.findById(id).orElseThrow { NoSuchElementException("존재하지 않는 문의") }
+        inquiryItem.inquiryState = InquiryState.COMPLETED
+        inquiryItem.completeDateTime = LocalDateTime.now()
+        inquiryItem.reply = answer
+        inquiryItem.responder = responder
+    }
+
 }
 
 data class InquiryDto(
     val id: Long,
     val title: String,
     val content: String,
+    val reply : String?,
     val targetRole: Role?,
     val userName: String?,
+    val userId : Long,
     val userNickname: String?,
     val state: InquiryState, // ✅ 상태 필드 추가
     val category: InquiryCategory,
-    val createdAt: LocalDateTime
+    val createdAt: LocalDateTime,
+    val completeDateTime :LocalDateTime?,
+    val responderId : Long? = null,
+    val responderNickname :String? = null
 ) {
     companion object {
         fun from(entity: InquiryItem): InquiryDto {
@@ -71,12 +89,17 @@ data class InquiryDto(
                 id = entity.id!!,
                 title = entity.title,
                 content = entity.content,
+                reply = entity.reply,
                 targetRole = entity.targetRole,
                 userName = entity.member!!.name,
-                userNickname = entity.member!!.email,
+                userId = entity.member!!.id!!,
+                userNickname = entity.member!!.nickname,
                 category = entity.inquiryCategory,
                 state = entity.inquiryState,
-                createdAt = entity.createDateTime!!
+                createdAt = entity.createDateTime!!,
+                completeDateTime = entity.completeDateTime,
+                responderId = entity.responder?.id,
+                responderNickname = entity.responder?.nickname
             )
         }
     }

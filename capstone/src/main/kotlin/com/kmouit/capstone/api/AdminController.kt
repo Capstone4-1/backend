@@ -20,7 +20,6 @@ class AdminController(
     private val commentService: CommentService
 ) {
 
-
     //권한 확인
 
     @GetMapping("search-users")
@@ -52,12 +51,16 @@ class AdminController(
         return ResponseEntity.ok("권한 회수 성공")
     }
 
+
+    @PreAuthorize("hasRole('STUDENT_COUNCIL')")
     @GetMapping("/today-posts")
     fun getTodayPosts(): ResponseEntity<List<SimplePostDto>> {
         val posts = postService.findTodayPosts()
         return ResponseEntity.ok(posts)
     }
 
+
+    @PreAuthorize("hasRole('STUDENT_COUNCIL')")
     @GetMapping("/today-comments")
     fun getTodayComments(): ResponseEntity<List<CommentsWithPostDto>> {
         val comments = commentService.findTodayComments()

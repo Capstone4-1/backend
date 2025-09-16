@@ -22,6 +22,8 @@ data class JoinForm(
     var name: String,
     @NotEmpty
     var email: String,
+    @NotEmpty
+    var nickname: String,
 )
 
 data class MemberSimpleDto(

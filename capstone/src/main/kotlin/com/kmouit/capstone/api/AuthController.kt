@@ -16,10 +16,10 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import kotlin.contracts.contract
 
 
 @RestController
-@PreAuthorize("permitAll()")
 @RequestMapping("/api/auth")
 class AuthController(
     private val refreshTokenService: RefreshTokenService,
@@ -68,10 +68,10 @@ class AuthController(
         mailService.sendSimpleMessage(mailDto.email)
         return ResponseEntity.ok(mapOf("message" to "인증코드 송신 성공"))
     }
+
     data class MailDto(
         var email: String,
     )
-
 
 
     @PostMapping("/verify-code")
@@ -82,10 +82,12 @@ class AuthController(
             VerificationResult.SUCCESS -> {
                 ResponseEntity.ok(mapOf("message" to "인증 성공"))
             }
+
             VerificationResult.INVALID_CODE -> {
                 ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(mapOf("message" to "인증코드가 올바르지 않습니다."))
             }
+
             VerificationResult.EXPIRED -> {
                 ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(mapOf("message" to "만료된 인증코드입니다."))
@@ -93,6 +95,38 @@ class AuthController(
         }
     }
 
+    @PostMapping("/check-duplicate")
+    fun checkDuplicate(
+        @RequestBody request: DuplicateCheckRequest,
+    ): ResponseEntity<Map<String, Any>> {
+        val errors = mutableListOf<Map<String, String>>()
+
+        if (memberManageService.isUsernameRegistered(request.username)) {
+            errors.add(mapOf("field" to "username", "message" to "이미 사용 중인 아이디입니다."))
+        }
+
+        if (memberManageService.isEmailRegistered(request.email)) {
+            errors.add(mapOf("field" to "email", "message" to "이미 가입된 이메일입니다."))
+        }
+
+        if (memberManageService.isNicknameRegistered(request.nickname)) {
+            errors.add(mapOf("field" to "nickname", "message" to "이미 사용 중인 닉네임입니다."))
+        }
+
+        if (errors.isNotEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(mapOf("errors" to errors))
+        }
+
+        // 중복 없음 → 이메일 인증 발송
+        mailService.sendSimpleMessage(request.email)
+        return ResponseEntity.ok(mapOf("message" to "중복 없음, 인증코드 송신 성공"))
+    }
+
+    data class DuplicateCheckRequest(
+        var username: String,
+        var email: String,
+        var nickname: String,
+    )
 
     data class VerifyDto(
         var email: String,

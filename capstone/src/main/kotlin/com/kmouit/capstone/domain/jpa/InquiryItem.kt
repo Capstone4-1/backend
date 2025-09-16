@@ -17,6 +17,10 @@ class InquiryItem(
     @JoinColumn(name = "member_id")
     var member: Member? = null,
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "responder_id") // 답변자
+    var responder: Member? = null,
+
     @Enumerated(EnumType.STRING)
     var inquiryState: InquiryState = InquiryState.PROCESSING,
 

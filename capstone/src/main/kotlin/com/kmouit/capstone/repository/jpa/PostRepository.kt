@@ -16,7 +16,6 @@ import java.time.LocalDateTime
 interface PostRepository : JpaRepository<Posts, Long> {
 
 
-
     @Query(
         """
     SELECT p FROM Posts p
@@ -86,17 +85,24 @@ interface PostRepository : JpaRepository<Posts, Long> {
     ): Page<Posts>
 
 
-    @Query("""
+    @Query(
+        """
     SELECT p FROM Posts p
     JOIN FETCH p.member
     WHERE p.boardType IN :boardTypes
     ORDER BY p.createdDate DESC
-""")
+"""
+    )
     fun findTopByBoardTypesWithMember(
         @Param("boardTypes") boardTypes: List<BoardType>,
-        pageable: Pageable
+        pageable: Pageable,
     ): List<Posts>
 
     fun findByMember(member: Member, pageable: Pageable): Page<Posts>
     fun findByCreatedDateBetween(start: LocalDateTime, end: LocalDateTime): List<Posts>
+    fun existsByBoardTypeAndTitleAndCreatedDate(
+        boardType: BoardType,
+        title: String,
+        createdDate: LocalDateTime,
+    ): Boolean
 }
