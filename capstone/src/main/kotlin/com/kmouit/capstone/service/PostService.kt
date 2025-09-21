@@ -39,6 +39,7 @@ class PostService(
     private val lectureRoomRepository: LectureRoomRepository,
     private val lecturePostRepository: LecturePostRepository,
     private val postLikeInfoRepository: PostLikeInfoRepository,
+    private val postScrapInfoRepository: PostScrapInfoRepository
 ) {
 
 
@@ -169,25 +170,26 @@ class PostService(
     fun saveCrawledNotices(
         noticeList: List<CrawledNoticeDto>,
         memberId: Long,
-        boardType: BoardType // 학교공지인지 학과공지인지 구분
+        boardType: BoardType
     ) {
         val member = memberRepository.findById(memberId)
             .orElseThrow { NoSearchMemberException(HttpStatus.NOT_FOUND, "존재하지 않는 회원") }
 
-        for (crawledNoticeDto in noticeList) {
+        val newPosts = mutableListOf<Posts>()
 
+        for (dto in noticeList) {
             val exists = postRepository.existsByBoardTypeAndTitleAndCreatedDate(
-                boardType, crawledNoticeDto.title, crawledNoticeDto.date.atStartOfDay()
+                boardType, dto.title, dto.date.atStartOfDay()
             )
             if (exists) {
-                println("⚠️ 중복된 게시글 발견, 저장 생략: ${crawledNoticeDto.title}")
+                println("⚠️ 중복된 게시글 발견, 저장 생략: ${dto.title}")
                 continue
             }
 
             var originalUrlOnS3: String? = null
             var thumbnailUrl: String? = null
 
-            val validImageUrl = crawledNoticeDto.img.firstOrNull { url ->
+            val validImageUrl = dto.img.firstOrNull { url ->
                 val lower = url.lowercase()
                 lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png")
             }
@@ -205,17 +207,19 @@ class PostService(
 
             val newPost = Posts().apply {
                 this.member = member
-                this.boardType = boardType   // 👈 여기서 타입 주입
-                this.targetUrl = crawledNoticeDto.url
-                this.title = crawledNoticeDto.title
-                this.content = crawledNoticeDto.content
-                this.createdDate = crawledNoticeDto.date.atStartOfDay()
+                this.boardType = boardType
+                this.targetUrl = dto.url
+                this.title = dto.title
+                this.content = dto.content
+                this.createdDate = dto.date.atStartOfDay()
                 this.imageUrls = originalUrlOnS3
                 this.thumbnailUrl = thumbnailUrl
             }
-
-            postRepository.save(newPost)
+            newPosts.add(newPost)
         }
+
+        // ✅ 배치 저장
+        postRepository.saveAll(newPosts)
     }
 
 
@@ -374,6 +378,8 @@ class PostService(
         postRepository.delete(post)
     }
 
+
+    //****************************좋아요 기능 *******************************
     fun findMyLikes(memberId: Long): List<SimplePostDto> {
         val member = memberRepository.findById(memberId)
             .orElseThrow { NoSuchElementException("존재하지 않는 회원") }
@@ -416,6 +422,47 @@ class PostService(
         postLikeInfoRepository.delete(likeInfo)
         return currentCount
     }
+
+    //************************************************************************
+    //*********************************스크랩 기능******************************
+    fun findMyScraps(memberId: Long): List<SimplePostDto> {
+        val member = memberRepository.findById(memberId)
+            .orElseThrow { NoSuchElementException("존재하지 않는 회원") }
+
+        val likedPosts = postScrapInfoRepository.findAllByMember(member)
+            .map { it.posts }  // Post 객체만 추출
+
+        return likedPosts.map { post ->
+            val commentCount = commentRepository.countByPostId(post!!.id!!)
+            post.toSimpleDto(memberId, commentCount)
+        }
+    }
+
+    @Transactional
+    fun scrapPost(postId: Long, memberId: Long) {
+        val post = postRepository.findById(postId).orElseThrow { NoSuchElementException("존재하지 않는 게시글") }
+        val member = memberRepository.findById(memberId).orElseThrow { NoSuchElementException("존재하지 않는 회원") }
+        val postScrapInfo = PostScrapInfo().apply {
+            this.member = member
+            this.posts = post
+        }
+        postScrapInfoRepository.save(postScrapInfo)
+    }
+
+    @Transactional
+    fun unScrapPost(postId: Long, memberId: Long) {
+        val post = postRepository.findById(postId)
+            .orElseThrow { NoSuchElementException("존재하지 않는 게시글") }
+        val member = memberRepository.findById(memberId)
+            .orElseThrow { NoSuchElementException("존재하지 않는 회원") }
+
+        val scrapInfo = postScrapInfoRepository.findByMemberAndPosts(member, post)
+            ?: throw NoSuchElementException("스크랩 정보가 없습니다.")
+        postScrapInfoRepository.delete(scrapInfo)
+    }
+
+    //*****************************************************************************
+
 
     fun getMyPosts(member: Member, page: Int, size: Int): Page<SimplePostDto> {
         val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDate"))

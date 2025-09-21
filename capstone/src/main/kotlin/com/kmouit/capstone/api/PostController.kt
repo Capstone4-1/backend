@@ -276,6 +276,47 @@ class PostController(
     }
 
 
+
+    @GetMapping("/scraps")
+    fun getMyScraps(
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+    ): ResponseEntity<Map<String, Any>> {
+        val result = postService.findMyScraps(userDetails.getId())
+        return ResponseEntity.ok(
+            mapOf(
+                "message" to "스크랩 한 글 조회 성공",
+                "scraps" to result
+            )
+        )
+    }
+
+    @PostMapping("/{postId}/scrap")
+    fun responseScrapPost(
+        @PathVariable postId: Long,
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+    ): ResponseEntity<Map<String, Any>> {
+        postService.scrapPost(postId, userDetails.member.id!!)
+        return ResponseEntity.ok(
+            mapOf(
+                "message" to "스크랩 성공",
+            )
+        )
+    }
+
+    @PostMapping("/{postId}/unScrap")
+    fun responseUnScrapPost(
+        @PathVariable postId: Long,
+        @AuthenticationPrincipal userDetails: CustomUserDetails,
+    ): ResponseEntity<Map<String, Any>> {
+        postService.unScrapPost(postId, userDetails.member.id!!)
+        return ResponseEntity.ok(
+            mapOf(
+                "message" to "스크랩 취소 성공",
+            )
+        )
+    }
+
+
     //마이 페이지 내 내가 쓴글
     @GetMapping("/my-posts")
     fun getMyPosts(

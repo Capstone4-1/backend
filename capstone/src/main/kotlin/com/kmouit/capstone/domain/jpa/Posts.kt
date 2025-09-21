@@ -44,10 +44,11 @@ data class PostDto(
     val writerProfileThumbnails: String?,
     val writerId: Long?,
     var imageUrls: String?= null,
-    var price : Int?,
-    var viewCount : Int?,
+    var price: Int?,
+    var viewCount: Int?,
     var isAuthor: Boolean,
-    var isLike : Boolean
+    var isLike: Boolean,
+    var targetUrl: String? = null
 )
 fun Posts.toDto(currentUserId: Long?, isLike : Boolean = false): PostDto {
     val isSecretBoard = this.boardType == BoardType.SECRET
@@ -66,7 +67,8 @@ fun Posts.toDto(currentUserId: Long?, isLike : Boolean = false): PostDto {
         price = this.price,
         viewCount = this.viewCount,
         isAuthor = (currentUserId != null && currentUserId == this.member?.id),
-        isLike = isLike
+        isLike = isLike,
+        targetUrl = this.targetUrl
     )
 }
 data class SimplePostDto(
