@@ -52,3 +52,32 @@ fun getPresignedUrl(filename: String, contentType: String): Map<String, String> 
 
     return mapOf("uploadUrl" to uploadUrl, "fileUrl" to fileUrl)
 }
+
+### 4️⃣ Role-Based Access Control
+- **Issue:** 권한에 따라 기능 제어 필요  
+- **Solution:**  
+  - `Spring Security + Role Hierarchy 적용  
+
+```kotlin
+@Bean
+fun roleHierarchy(): RoleHierarchy {
+    return RoleHierarchyImpl.fromHierarchy(
+        """
+        ROLE_SYSTEM > ROLE_ADMIN
+        ROLE_ADMIN > ROLE_PROFESSOR
+        ROLE_PROFESSOR > ROLE_MANAGER
+        ROLE_MANAGER > ROLE_STUDENT_COUNCIL
+        ROLE_STUDENT_COUNCIL > ROLE_STUDENT
+        ROLE_STUDENT > ROLE_USER
+        """.trimIndent()
+    )
+}
+
+### 4️⃣ Role-Based Access Control
+- **Issue:** 기본 인증만으로는 API 보안 취약  
+- **Solution:**  
+  - `JWT 기반 인증 구현
+  - `JWTUtil: Access/Refresh Token 생성, 만료 체크, 권한 확인
+  - `요청마다 JWT 검증 후 SecurityContext에 인증 정보 설정
+
+
