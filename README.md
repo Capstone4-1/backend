@@ -55,3 +55,68 @@ fun getPresignedUrl(filename: String, contentType: String): Map<String, String> 
 
     return mapOf("uploadUrl" to uploadUrl, "fileUrl" to fileUrl)
 }
+
+```
+
+
+## 4️⃣ Role-Based Access Control
+- **Issue:** 게시글 작성 시 이미지 업로드 어려움  
+- **Solution:** Spring Security + Role Hierarchy 적용 
+
+```kotlin
+@Bean
+fun roleHierarchy(): RoleHierarchy {
+    return RoleHierarchyImpl.fromHierarchy(
+        """
+        ROLE_SYSTEM > ROLE_ADMIN
+        ROLE_ADMIN > ROLE_PROFESSOR
+        ROLE_PROFESSOR > ROLE_MANAGER
+        ROLE_MANAGER > ROLE_STUDENT_COUNCIL
+        ROLE_STUDENT_COUNCIL > ROLE_STUDENT
+        ROLE_STUDENT > ROLE_USER
+        """.trimIndent()
+    )
+}
+```
+
+
+
+## 4️⃣ API Security with JWT
+- **Issue:** 기본 인증만으로는 API 보안 취약  
+- **Solution:** Spring Security + Role Hierarchy 적용
+- `JWTUtil: Access/Refresh Token 생성, 만료 체크, 권한 확인
+- `JwtAuthenticationFilter: 요청마다 JWT 검증 후 SecurityContext에 인증 정보 설정
+
+```kotlin
+@Component
+class JWTUtil(
+    @Value("\${spring.jwt.secret}") secret: String,
+    @Value("\${spring.jwt.access-token-expiration}") private val accessTokenExpiration: Long,
+    @Value("\${spring.jwt.refresh-token-expiration}") private val refreshTokenExpiration: Long
+) {
+    private val secretKey: SecretKey = SecretKeySpec(
+        secret.toByteArray(StandardCharsets.UTF_8),
+        SignatureAlgorithm.HS256.jcaName
+    )
+
+    fun createAccessToken(id:Long, name:String, username: String, role: List<String>, expiredMs: Long = accessTokenExpiration): String { ... }
+    fun createRefreshToken(id:Long, username: String, expiredMs: Long = refreshTokenExpiration): String { ... }
+    fun getUsername(token: String): String { ... }
+    fun getRole(token: String): List<String> { ... }
+    fun isExpired(token: String): Boolean { ... }
+}
+
+@Component
+class JwtAuthenticationFilter(
+    @Value("\${spring.jwt.secret}") private val secret: String,
+    private val customUserDetailService: CustomUserDetailService
+) : OncePerRequestFilter() {
+    private val secretKey: SecretKey = SecretKeySpec(
+        secret.toByteArray(StandardCharsets.UTF_8),
+        SignatureAlgorithm.HS256.jcaName
+    )
+
+    override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain) { ... }
+}
+```
+
