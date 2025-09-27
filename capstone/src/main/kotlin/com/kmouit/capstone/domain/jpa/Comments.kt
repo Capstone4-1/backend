@@ -75,17 +75,19 @@ data class CommentsWithPostDto(
     var boardType: BoardType? = null
 )
 
-fun Comments.toCommentsWithPostDto(currentUserId: Long?, isAnonymous: Boolean): CommentsWithPostDto {
+fun Comments.toCommentsWithPostDto(currentUserId: Long?, isAnonymous: Boolean = false): CommentsWithPostDto {
+    val finalAnonymous = isAnonymous || (this.post?.boardType == BoardType.SECRET)
+
     return CommentsWithPostDto(
         id = this.id ?: throw IllegalStateException("댓글 ID가 null입니다."),
         content = this.content.orEmpty(),
-        writerId = if (isAnonymous) -1L else this.member?.id ?: -1L,
-        writerNickname = if (isAnonymous) "익명" else this.member?.nickname ?: "탈퇴회원",
-        writerProfileImageUrl = if (isAnonymous) null else this.member?.profileImageUrl,
-        writerProfileThumbnails = if (isAnonymous) null else this.member?.thumbnailUrl,
+        writerId = if (finalAnonymous) -1L else this.member?.id ?: -1L,
+        writerNickname = if (finalAnonymous) "익명" else this.member?.nickname ?: "탈퇴회원",
+        writerProfileImageUrl = if (finalAnonymous) null else this.member?.profileImageUrl,
+        writerProfileThumbnails = if (finalAnonymous) null else this.member?.thumbnailUrl,
         createdDate = this.createdDate ?: LocalDateTime.now(),
         likeCount = this.likeCount,
-        isAuthor = (!isAnonymous && currentUserId != null && currentUserId == this.member?.id),
+        isAuthor = (!finalAnonymous && currentUserId != null && currentUserId == this.member?.id),
         hasChildren = this.replies.isNotEmpty(),
         countChildren = this.replies.size,
         postId = this.post?.id,

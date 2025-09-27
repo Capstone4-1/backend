@@ -16,7 +16,6 @@ class JWTUtil(
     @Value("\${spring.jwt.refresh-token-expiration}") private val refreshTokenExpiration: Long
 ) {
 
-
     private val secretKey: SecretKey = SecretKeySpec(
         secret.toByteArray(StandardCharsets.UTF_8),
         SignatureAlgorithm.HS256.jcaName
