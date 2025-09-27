@@ -9,6 +9,9 @@
 ## 2️⃣ Image Loading Optimization
 - **Issue:** 프로필, 게시글 이미지 용량이 커서 로딩 속도 느림  
 - **Solution:** 업로드 시 프론트에서 이미지를 리사이즈하여 **썸네일 전용 이미지** 생성 후 S3 저장
+<img width="1261" height="1150" alt="image" src="https://github.com/user-attachments/assets/77732b4d-dd0b-4dcf-a010-4b523da8baad" />
+
+
 
 ## 3️⃣ Handling Large Data Sets
 - **Issue:** 게시글/댓글/채팅 수 증가 시 전체 조회 지연  
