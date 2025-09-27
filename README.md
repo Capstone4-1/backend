@@ -28,3 +28,27 @@ fun responseGetPresignedUrl(@RequestParam filename: String,
                             @RequestParam contentType: String): Map<String, String> {
     return uploadService.getPresignedUrl(filename, contentType)
 }
+
+fun getPresignedUrl(filename: String, contentType: String): Map<String, String> {
+    val uuid = UUID.randomUUID()
+    val extension = filename.substringAfterLast('.', "jpg")
+    val objectKey = "original-images/$uuid.$extension"
+    val safeContentType = contentType.ifBlank { "application/octet-stream" }
+
+    val putObjectRequest = PutObjectRequest.builder()
+        .bucket(bucket)
+        .key(objectKey)
+        .contentType(safeContentType)
+        .build()
+
+    val presignedRequest: PresignedPutObjectRequest =
+        s3Presigner.presignPutObject { builder ->
+            builder.signatureDuration(Duration.ofMinutes(5))
+                   .putObjectRequest(putObjectRequest)
+        }
+
+    val uploadUrl = presignedRequest.url().toString()
+    val fileUrl = "https://${bucket}.s3.${region.id()}.amazonaws.com/$objectKey"
+
+    return mapOf("uploadUrl" to uploadUrl, "fileUrl" to fileUrl)
+}
