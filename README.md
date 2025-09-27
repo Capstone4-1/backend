@@ -53,10 +53,13 @@ fun getPresignedUrl(filename: String, contentType: String): Map<String, String> 
     return mapOf("uploadUrl" to uploadUrl, "fileUrl" to fileUrl)
 }
 
+```
+
 ### 4️⃣ Role-Based Access Control
 - **Issue:** 권한에 따라 기능 제어 필요  
 - **Solution:**  
   - `Spring Security + Role Hierarchy 적용  
+
 
 ```kotlin
 @Bean
