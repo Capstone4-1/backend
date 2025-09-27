@@ -82,12 +82,17 @@ fun roleHierarchy(): RoleHierarchy {
 
 
 ## 6️⃣ API Security with JWT
-- **Issue:** 기본 인증만으로는 API 보안 취약  
+- **Issue:** 기본 인증만으로는 API 보안 취약, 비밀번호 암호화
 - **Solution:** Spring Security + Role Hierarchy 적용
 - `JWTUtil: Access/Refresh Token 생성, 만료 체크, 권한 확인
 - `JwtAuthenticationFilter: 요청마다 JWT 검증 후 SecurityContext에 인증 정보 설정
+- 'BCryptPasswordEncoder 빈으로 등록하여 사용 _> 비밀번호 단방향 암호화
 
 ```kotlin
+@Bean
+    fun passwordEncoder(): BCryptPasswordEncoder = BCryptPasswordEncoder()
+
+
 @Component
 class JWTUtil(
     @Value("\${spring.jwt.secret}") secret: String,
