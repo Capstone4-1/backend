@@ -60,7 +60,7 @@ fun getPresignedUrl(filename: String, contentType: String): Map<String, String> 
 
 
 ## 5️⃣ Role-Based Access Control
-- **Issue:** 게시글 작성 시 이미지 업로드 어려움  
+- **Issue:** 권한에 따라 기능에 제한을 둬야한다  
 - **Solution:** Spring Security + Role Hierarchy 적용 
 
 ```kotlin
