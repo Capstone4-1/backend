@@ -59,7 +59,7 @@ fun getPresignedUrl(filename: String, contentType: String): Map<String, String> 
 ```
 
 
-## 4️⃣ Role-Based Access Control
+## 5️⃣ Role-Based Access Control
 - **Issue:** 게시글 작성 시 이미지 업로드 어려움  
 - **Solution:** Spring Security + Role Hierarchy 적용 
 
@@ -81,7 +81,7 @@ fun roleHierarchy(): RoleHierarchy {
 
 
 
-## 4️⃣ API Security with JWT
+## 6️⃣ API Security with JWT
 - **Issue:** 기본 인증만으로는 API 보안 취약  
 - **Solution:** Spring Security + Role Hierarchy 적용
 - `JWTUtil: Access/Refresh Token 생성, 만료 체크, 권한 확인
