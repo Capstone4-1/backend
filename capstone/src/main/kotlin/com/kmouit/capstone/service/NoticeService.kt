@@ -26,14 +26,15 @@ class NoticeService(
      * (알림 받을사람, 내용)
      */
     @Transactional
-    fun createCommentNotice(post: Posts, member: Member, targetUrl: String?) {
-        var newNickName = member.nickname
-        if (post.boardType == BoardType.SECRET){
-            newNickName = "익명"
-        }
+    fun createCommentNotice(
+        post: Posts,
+        member: Member,
+        targetUrl: String?,
+        content: String
+    ) {
         val notice = Notice().apply {
             this.date = LocalDateTime.now()
-            this.content = "'${post.title}' 게시글에 '${newNickName}'님이 댓글을 남겼습니다"
+            this.content = content
             this.noticeType = NEW_COMMENT
             this.targetUrl = targetUrl
             this.member = post.member

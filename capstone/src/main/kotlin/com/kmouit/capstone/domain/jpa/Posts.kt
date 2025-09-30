@@ -47,10 +47,11 @@ data class PostDto(
     var price: Int?,
     var viewCount: Int?,
     var isAuthor: Boolean,
-    var isLike: Boolean,
+    var isLike: Boolean? = null,
+    var isScrapped : Boolean?= null,
     var targetUrl: String? = null
 )
-fun Posts.toDto(currentUserId: Long?, isLike : Boolean = false): PostDto {
+fun Posts.toDto(currentUserId: Long?, isLike : Boolean = false, isScrapped: Boolean = false): PostDto {
     val isSecretBoard = this.boardType == BoardType.SECRET
     return PostDto(
         id = this.id!!,
@@ -68,6 +69,7 @@ fun Posts.toDto(currentUserId: Long?, isLike : Boolean = false): PostDto {
         viewCount = this.viewCount,
         isAuthor = (currentUserId != null && currentUserId == this.member?.id),
         isLike = isLike,
+        isScrapped = isScrapped,
         targetUrl = this.targetUrl
     )
 }

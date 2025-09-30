@@ -11,4 +11,5 @@ import org.springframework.stereotype.Repository
 interface PostScrapInfoRepository : JpaRepository<PostScrapInfo, Long> {
     fun findByMemberAndPosts(member: Member, posts: Posts): PostScrapInfo?
     fun findAllByMember(member: Member): List<PostScrapInfo>
+    fun existsByMemberIdAndPostsId(memberId: Long, postsId: Long): Boolean
 }

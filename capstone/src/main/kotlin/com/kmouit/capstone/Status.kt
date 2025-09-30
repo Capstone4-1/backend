@@ -49,6 +49,7 @@ enum class BoardType(val value: String) {
     MARKET("MARKET"),
     SECRET("SECRET"),
     REVIEW("REVIEW"),
+    QNA("QNA"),
     NOTICE_UNIV("NOTICE_UNIV"),
     NOTICE_DEPT("NOTICE_DEPT"),
     NOTICE_SC("NOTICE_SC"),

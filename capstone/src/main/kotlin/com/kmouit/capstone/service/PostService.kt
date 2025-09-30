@@ -51,12 +51,13 @@ class PostService(
         val post = postRepository.findById(postId).orElseThrow {
             NoSuchElementException("게시글을 찾을 수 없습니다.")
         }
-        // 🔹 parent 댓글이 있으면 찾아서 연결
+
         val parent: Comments? = requestDto.parentId?.let {
             commentRepository.findById(it).orElseThrow {
                 NoSuchElementException("부모 댓글을 찾을 수 없습니다.")
             }
         }
+
         val comment = Comments(
             content = requestDto.content,
             createdDate = LocalDateTime.now(),
@@ -66,17 +67,26 @@ class PostService(
             likeCount = 0
         )
 
-        // 🔹 부모가 없으면 최상위 댓글이므로 post에 직접 연결
         if (parent == null) {
             post.comments.add(comment)
         } else {
-            parent.replies.add(comment) // 생략해도 Cascade로 반영되긴 함
+            parent.replies.add(comment)
         }
 
         commentRepository.save(comment)
-        // 본인이 쓴 글이면 알림 생성 생략
+
+        // 본인이 쓴 글이면 알림 생략
         if (post.member?.id == member.id) return
-        noticeService.createCommentNotice(post, member, requestDto.targetUrl)
+
+        val nickname = if (post.boardType == BoardType.SECRET) "익명" else member.nickname
+
+        val content = if (parent == null) {
+            "'${post.title}' 게시글에 '${nickname}'님이 댓글을 남겼습니다"
+        } else {
+            "'${post.title}' 게시글의 댓글에 '${nickname}'님이 답글을 남겼습니다"
+        }
+
+        noticeService.createCommentNotice(post, member, requestDto.targetUrl, content)
     }
 
 
@@ -225,20 +235,26 @@ class PostService(
 
 
 
+
     @Transactional
     fun getPostDetail(id: Long, currentUserId: Long?): PostDto {
         val post = postRepository.findPostWithDetails(id)
             ?: throw NoSuchElementException("게시글 없음")
+
         // 조회수 증가
         post.viewCount += 1
-        // 내가 좋아요를 눌렀는지 체크
+
+        // 좋아요 여부
         val isLike = if (currentUserId != null) {
             postLikeInfoRepository.existsByMemberIdAndPostsId(currentUserId, id)
-        } else {
-            false
-        }
+        } else false
 
-        return post.toDto(currentUserId, isLike)
+        // 스크랩 여부
+        val isScrapped = if (currentUserId != null) {
+            postScrapInfoRepository.existsByMemberIdAndPostsId(currentUserId, id)
+        } else false
+
+        return post.toDto(currentUserId, isLike, isScrapped)
     }
 
     @Transactional
