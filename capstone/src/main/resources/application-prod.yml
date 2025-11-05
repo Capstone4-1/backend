@@ -1,9 +1,0 @@
-spring:
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://moai-db.cry0swq8owhv.ap-northeast-2.rds.amazonaws.com:3306/moai?useSSL=false&serverTimezone=Asia/Seoul
-    username: admin
-    password: mU6IIiKc5PaucmVGc1hj
-app:
-  s3:
-    base-path: prod/
