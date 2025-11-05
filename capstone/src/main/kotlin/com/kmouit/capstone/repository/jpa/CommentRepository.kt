@@ -41,6 +41,7 @@ interface CommentRepository : JpaRepository<Comments, Long> {
     fun findTopLevelCommentsByPostId(@Param("postId") postId: Long): List<Comments>
     fun findByMember(member: Member, pageable: Pageable): Page<Comments>
     fun findByCreatedDateBetween(start: LocalDateTime, end: LocalDateTime): List<Comments>
+    fun deleteAllByMember(member: Member)
 
 
 }

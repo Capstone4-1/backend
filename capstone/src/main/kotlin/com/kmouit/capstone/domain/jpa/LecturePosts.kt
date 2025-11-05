@@ -35,7 +35,9 @@ class LecturePosts(
     var imageUrls: String?= null,
     var thumbnailUrl : String? = null,
     var targetUrl : String? = null
-    )
+    ){
+
+}
 data class LecturePostsDto(
     val id: Long,
     val title: String,

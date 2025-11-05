@@ -360,7 +360,7 @@ class MemberController(
         )
     }
 
-    @DeleteMapping
+    @PostMapping("/withdraw")
     fun withdraw(@AuthenticationPrincipal userDetails: CustomUserDetails) {
         memberManageService.withdraw(userDetails.member)
     }

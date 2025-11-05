@@ -105,4 +105,9 @@ interface PostRepository : JpaRepository<Posts, Long> {
         title: String,
         createdDate: LocalDateTime,
     ): Boolean
+
+    fun findAllByMember(managedMember: Member?): List<Posts>
+    fun findTopByBoardTypeOrderByCreatedDateDesc(boardType: BoardType): Posts?
+
+
 }

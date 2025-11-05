@@ -32,14 +32,13 @@ class PostService(
     private val memberRepository: MemberRepository,
     private val postRepository: PostRepository,
     private val noticeService: NoticeService,
-    private val boardMarkInfoRepository: BoardMarkInfoRepository,
     private val uploadService: S3UploadService,
     private val s3UploadService: S3UploadService,
     private val commentRepository: CommentRepository,
     private val lectureRoomRepository: LectureRoomRepository,
     private val lecturePostRepository: LecturePostRepository,
     private val postLikeInfoRepository: PostLikeInfoRepository,
-    private val postScrapInfoRepository: PostScrapInfoRepository
+    private val postScrapInfoRepository: PostScrapInfoRepository,
 ) {
 
 
@@ -232,10 +231,6 @@ class PostService(
         postRepository.saveAll(newPosts)
     }
 
-
-
-
-
     @Transactional
     fun getPostDetail(id: Long, currentUserId: Long?): PostDto {
         val post = postRepository.findPostWithDetails(id)
@@ -329,65 +324,14 @@ class PostService(
 
 
     @Transactional
-    fun saveBoardMarkInfo(id: Long, boardType: String) {
-        val member = memberRepository.findById(id)
-            .orElseThrow { NoSuchElementException("존재하지 않는 회원") }
-
-        val boardTypeEnum = BoardType.from(boardType.uppercase(Locale.getDefault()))
-
-        val exists = boardMarkInfoRepository.existsByMemberAndBoardType(member, boardTypeEnum!!)
-        if (exists) {
-            throw DuplicateFavoriteException("이미 등록된 즐겨찾기입니다.")
-        }
-        val boardMarkInfo = BoardMarkInfo().apply {
-            this.member = member
-            this.boardType = boardTypeEnum
-            this.targetUrl = "/main/community/${boardType.lowercase()}" // 필요한 경우 자동 생성
-        }
-
-        boardMarkInfoRepository.save(boardMarkInfo)
-    }
-
-
-    fun findMyFavorites(memberId: Long): List<BoardMarkInfoDto> {
-        val member = memberRepository.findById(memberId)
-            .orElseThrow { NoSuchElementException("존재하지 않는 회원") }
-
-        return boardMarkInfoRepository.findAllByMemberIdWithFetch(member.id!!)
-            .map { it.toDto() }
-    }
-
-    @Transactional
-    fun deleteBoardMarkInfo(memberId: Long, boardType: String) {
-        val member = memberRepository.findById(memberId)
-            .orElseThrow { NoSuchElementException("존재하지 않는 회원") }
-
-        val boardTypeEnum = BoardType.from(boardType.uppercase(Locale.ENGLISH))
-
-        val boardMarkInfo = boardMarkInfoRepository
-            .findByMemberAndBoardType(member, boardTypeEnum!!)
-            ?: throw NoSuchElementException("해당 즐겨찾기를 찾을 수 없습니다.")
-
-        boardMarkInfoRepository.delete(boardMarkInfo)
-    }
-
-    fun checkBoardMark(boardType: String, id: Long): Boolean {
-        val member = memberRepository.findById(id).orElseThrow { NoSuchElementException("존재하지 않는 회원") }
-        return boardMarkInfoRepository.existsByMemberAndBoardType(
-            member,
-            BoardType.from(boardType.uppercase(Locale.getDefault()))!!
-        )
-    }
-
-    @Transactional
     fun deletePost(postId: Long, currentUser: Member) {
         val post = postRepository.findById(postId)
             .orElseThrow { IllegalArgumentException("게시글이 존재하지 않습니다.") }
-
         if (post.member?.id != currentUser.id) {
             throw CustomAccessDeniedException("본인의 게시글만 삭제할 수 있습니다.")
         }
         postLikeInfoRepository.deleteByPostId(postId)
+        postScrapInfoRepository.deleteByPostId(postId)
         // ✅ 이미지 및 썸네일 S3 삭제
         s3UploadService.deleteAllImages(post.imageUrls, post.thumbnailUrl)
         // ✅ 게시글 DB 삭제

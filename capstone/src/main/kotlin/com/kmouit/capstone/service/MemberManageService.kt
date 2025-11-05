@@ -8,10 +8,10 @@ import com.kmouit.capstone.domain.jpa.Member
 import com.kmouit.capstone.domain.jpa.TodoDto
 import com.kmouit.capstone.dtos.JoinForm
 import com.kmouit.capstone.dtos.NoticeDto
-import com.kmouit.capstone.exception.DuplicateUsernameException
 import com.kmouit.capstone.exception.FileSizeLimitExceededException
 import com.kmouit.capstone.exception.NoSearchMemberException
 import com.kmouit.capstone.repository.jpa.*
+import jakarta.persistence.EntityManager
 import org.springframework.http.HttpStatus
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
@@ -27,10 +27,14 @@ class MemberManageService(
     private val memberRepository: MemberRepository,
     private val uploadService: S3UploadService,
     private val todoRepository: TodoRepository,
-    private val lectureMarkInfoRepository: LectureMarkInfoRepository,
-    private val boardMarkInfoRepository: BoardMarkInfoRepository,
     private val friendInfoRepository: FriendInfoRepository,
-
+    private val postScrapInfoRepository: PostScrapInfoRepository,
+    private val postLikeInfoRepository: PostLikeInfoRepository,
+    private val s3UploadService: S3UploadService,
+    private val postService: PostService,
+    private val postRepository: PostRepository,
+    private val commentRepository: CommentRepository,
+    private val em : EntityManager
     ) {
 
     /**
@@ -54,7 +58,7 @@ class MemberManageService(
         }
 
 
-        val (originalUrl, thumbnailUrl) = uploadService.uploadWithThumbnail(file)
+        val (originalUrl, thumbnailUrl) = uploadService.uploadProfileImageWithThumbnail(file)
         member.profileImageUrl = originalUrl
         member.thumbnailUrl = thumbnailUrl
 
@@ -186,22 +190,40 @@ class MemberManageService(
     }
     @Transactional
     fun withdraw(member: Member) {
-        try {
-            val managedMember = memberRepository.findById(member.id!!)
-                .orElseThrow { IllegalArgumentException("존재하지 않는 회원입니다.") }
+        val managedMember = memberRepository.findById(member.id!!)
+            .orElseThrow { IllegalArgumentException("존재하지 않는 회원입니다.") }
 
-            managedMember.notices.forEach { it.member = null }
-            managedMember.notices.clear()
-            lectureMarkInfoRepository.deleteAllByMember(managedMember)
-            boardMarkInfoRepository.deleteAllByMember(managedMember)
-            friendInfoRepository.deleteAllByFriendInfoIdSendMember(managedMember)
-            friendInfoRepository.deleteAllByFriendInfoIdReceiveMember(managedMember)
-            memberRepository.delete(managedMember)
+        // 1️⃣ 회원 게시글 삭제
+        val userPosts = postRepository.findAllByMember(managedMember)
+        userPosts.forEach { post ->
+            // S3 이미지 삭제
+            s3UploadService.deleteAllImages(post.imageUrls, post.thumbnailUrl)
 
-        } catch (e: Exception) {
-            throw Exception("탈퇴 오류: ${e.message}")
+            // 좋아요 / 스크랩 삭제
+            postLikeInfoRepository.deleteByPostId(post.id!!)
+            postScrapInfoRepository.deleteByPostId(post.id!!)
+
+            // 게시글 댓글 삭제
         }
+
+        // DB에서 게시글 삭제 (한 번에 flush)
+        postRepository.deleteAll(userPosts)
+        postRepository.flush()
+
+        // 2️⃣ 회원이 쓴 댓글 삭제 (남은 것)
+        commentRepository.deleteAllByMember(managedMember)
+        commentRepository.flush()
+
+        // 3️⃣ 친구 정보 삭제
+        friendInfoRepository.deleteAllByFriendInfoIdSendMember(managedMember)
+        friendInfoRepository.deleteAllByFriendInfoIdReceiveMember(managedMember)
+        friendInfoRepository.flush()
+
+        // 4️⃣ 회원 삭제
+        memberRepository.delete(managedMember)
+        memberRepository.flush()
     }
+
 
 
     @Transactional

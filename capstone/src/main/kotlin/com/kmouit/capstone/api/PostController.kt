@@ -104,13 +104,11 @@ class PostController(
             currentPage = resultPage.number,
             pageSize = resultPage.size
         )
-        val isMarked = postService.checkBoardMark(boardType, userDetails.getId())
 
         return ResponseEntity.ok(
             mapOf(
                 "message" to "페이지 정보 조회 성공",
                 "pageResponse" to response,
-                "isMarked" to isMarked
             )
         )
     }
@@ -125,6 +123,9 @@ class PostController(
         @PathVariable id: Long,
     ): ResponseEntity<Map<String, Any>> {
         val dto = postService.getPostDetail(id, userDetails.getId())
+
+
+
         return ResponseEntity.ok(
             mapOf(
                 "message" to "게시글 detail 조회 성공",

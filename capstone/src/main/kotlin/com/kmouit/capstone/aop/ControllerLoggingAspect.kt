@@ -1,5 +1,6 @@
 package com.kmouit.capstone.aop
 
+import com.kmouit.capstone.api.CrawledNoticeDto
 import org.aspectj.lang.JoinPoint
 import org.aspectj.lang.annotation.Aspect
 import org.aspectj.lang.annotation.Before
@@ -13,12 +14,25 @@ class ControllerLoggingAspect {
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    // RestController 어노테이션 붙은 클래스 내부 메서드 모두 대상
     @Before("within(@org.springframework.web.bind.annotation.RestController *)")
     fun logBefore(joinPoint: JoinPoint) {
         val className = joinPoint.signature.declaringType.simpleName
         val methodName = joinPoint.signature.name
-        val args = joinPoint.args.joinToString(", ") { it?.toString() ?: "null" }
+
+        val args = joinPoint.args.joinToString(", ") { arg ->
+            when (arg) {
+                is CrawledNoticeDto -> {
+                    "CrawledNoticeDto(title=${arg.title}, date=${arg.date}, url=${arg.url}, img=${arg.img}, contentLength=${arg.content?.length ?: 0})"
+                }
+                is Collection<*> -> arg.joinToString(", ") { item ->
+                    when (item) {
+                        is CrawledNoticeDto -> "CrawledNoticeDto(title=${item.title}, contentLength=${item.content?.length ?: 0})"
+                        else -> item?.toString() ?: "null"
+                    }
+                }
+                else -> arg?.toString() ?: "null"
+            }
+        }
 
         log.info("call: $className.$methodName($args)")
     }

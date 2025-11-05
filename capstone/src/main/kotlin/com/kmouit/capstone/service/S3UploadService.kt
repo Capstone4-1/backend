@@ -9,7 +9,6 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.s3.model.DeleteObjectRequest
 import software.amazon.awssdk.services.s3.model.GetObjectRequest
 import software.amazon.awssdk.services.s3.model.PutObjectRequest
 import software.amazon.awssdk.services.s3.presigner.S3Presigner
@@ -28,6 +27,7 @@ class S3UploadService(
     @Value("\${cloud.aws.credentials.access-key}") private val accessKey: String,
     @Value("\${cloud.aws.credentials.secret-key}") private val secretKey: String,
     @Value("\${cloud.aws.s3.bucket}") private val bucket: String,
+    @Value("\${app.s3.base-path}") private var s3BasePath: String // 크롤링 썸네일
 
     ) {
     private val region = Region.AP_NORTHEAST_2
@@ -55,12 +55,11 @@ class S3UploadService(
         return "https://${bucket}.s3.${region.id()}.amazonaws.com/$fileName"
     }
 
-    fun uploadWithThumbnail(file: MultipartFile): Pair<String, String> {
+    fun uploadProfileImageWithThumbnail(file: MultipartFile): Pair<String, String> {
         val allowedTypes = mapOf(
             "image/jpeg" to "jpg",
             "image/png" to "png",
             "image/gif" to "gif"
-            // WebP는 기본 ImageIO에서 미지원 (추가 의존성 필요)
         )
 
         val contentType = file.contentType ?: throw IllegalArgumentException("파일의 contentType을 알 수 없습니다.")
@@ -69,8 +68,9 @@ class S3UploadService(
 
         val uuid = UUID.randomUUID().toString()
 
-        // 원본 업로드
-        val originalKey = "original-images/${uuid}.$extension"
+        // ✅ basePath 끝에 /가 없는 경우 대비 (자동 보정)
+
+        val originalKey = "${s3BasePath}profile/original-images/$uuid.$extension"
         val originalRequest = PutObjectRequest.builder()
             .bucket(bucket)
             .key(originalKey)
@@ -78,8 +78,8 @@ class S3UploadService(
             .build()
         s3Client.putObject(originalRequest, RequestBody.fromInputStream(file.inputStream, file.size))
 
-        // 썸네일 생성
-        val thumbnailKey = "thumbnails/${uuid}.$extension"
+        // ✅ 썸네일 생성
+        val thumbnailKey = "${s3BasePath}profile/thumbnails/$uuid.$extension"
         val thumbnailImage = Thumbnails.of(file.inputStream)
             .size(200, 200)
             .outputFormat(extension)
@@ -97,18 +97,19 @@ class S3UploadService(
         s3Client.putObject(thumbnailRequest, RequestBody.fromBytes(baos.toByteArray()))
         baos.close()
 
-        val originalUrl = "https://${bucket}.s3.${region.id()}.amazonaws.com/$originalKey"
-        val thumbnailUrl = "https://${bucket}.s3.${region.id()}.amazonaws.com/$thumbnailKey"
+        val baseUrl = "https://${bucket}.s3.${region.id()}.amazonaws.com"
+        val originalUrl = "$baseUrl/$originalKey"
+        val thumbnailUrl = "$baseUrl/$thumbnailKey"
 
         return originalUrl to thumbnailUrl
     }
 
 
+
     fun getPresignedUrl(filename: String, contentType: String): Map<String, String> {
         val uuid = UUID.randomUUID()
         val extension = filename.substringAfterLast('.', "jpg")
-        val objectKey = "original-images/$uuid.$extension"
-
+        val objectKey = "${s3BasePath}post/original-images/$uuid.$extension"
         val safeContentType = contentType.ifBlank { "application/octet-stream" }
 
         val putObjectRequest = PutObjectRequest.builder()
@@ -155,7 +156,7 @@ class S3UploadService(
             .toOutputStream(baos)
 
         val uuid = UUID.randomUUID().toString()
-        val thumbnailKey = "thumbnails/$uuid.jpg"
+        val thumbnailKey = "${s3BasePath}post/thumbnails/$uuid.jpg"
 
         s3Client.putObject(
             PutObjectRequest.builder()
@@ -165,7 +166,6 @@ class S3UploadService(
                 .build(),
             RequestBody.fromBytes(baos.toByteArray())
         )
-
         return "https://${bucket}.s3.${region.id()}.amazonaws.com/$thumbnailKey"
     }
 
@@ -190,7 +190,7 @@ class S3UploadService(
         val extension = "jpg"
 
         // ✅ 원본 저장 (JPG 변환된)
-        val originalKey = "original-images/crawling-image/$uuid.$extension"
+        val originalKey = "${s3BasePath}crawling-image/original-images/$uuid.$extension"
         val originalBaos = ByteArrayOutputStream()
         ImageIO.write(rgbImage, extension, originalBaos)
         s3Client.putObject(
@@ -211,7 +211,7 @@ class S3UploadService(
         val thumbnailBaos = ByteArrayOutputStream()
         ImageIO.write(thumbnailImage, extension, thumbnailBaos)
 
-        val thumbnailKey = "thumbnails/crawling-image/$uuid.$extension"
+        val thumbnailKey = "${s3BasePath}crawling-image/thumbnails/$uuid.$extension"
         s3Client.putObject(
             PutObjectRequest.builder()
                 .bucket(bucket)

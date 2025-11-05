@@ -15,7 +15,7 @@ interface PostLikeInfoRepository : JpaRepository <PostLikeInfo, Long> {
     fun findByMemberAndPosts(member: Member, posts: Posts): PostLikeInfo?
     fun existsByMemberIdAndPostsId(currentUserId: Long, id: Long): Boolean
     fun findAllByMember(member: Member): List<PostLikeInfo>
-    @Modifying
+    @Modifying(clearAutomatically = true)
     @Query("delete from PostLikeInfo p where p.posts.id = :postId")
     fun deleteByPostId(@Param("postId") postId: Long)
 

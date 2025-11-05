@@ -78,7 +78,7 @@ class AuthController(
     fun verifyCode(
         @RequestBody verifyDto: VerifyDto,
     ): ResponseEntity<Map<String, String>> {
-        return when (val result = mailService.verifyCode(verifyDto.email, verifyDto.code)) {
+        return when (mailService.verifyCode(verifyDto.email, verifyDto.code)) {
             VerificationResult.SUCCESS -> {
                 ResponseEntity.ok(mapOf("message" to "인증 성공"))
             }
