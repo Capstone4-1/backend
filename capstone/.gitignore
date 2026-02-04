@@ -39,9 +39,8 @@ out/
 ### Kotlin ###
 .kotlin
 
-# Spring Boot 설정 파일 무시
-**/application.yml
-**/application.properties
-**/application-dev.yml
-**/application-prod.yml
 
+# application config
+**/application.yml
+**/application-*.yml
+**/application.properties

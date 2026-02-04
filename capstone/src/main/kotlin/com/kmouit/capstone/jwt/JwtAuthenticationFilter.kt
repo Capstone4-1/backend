@@ -1,14 +1,11 @@
 package com.kmouit.capstone.jwt
 
 import com.kmouit.capstone.service.CustomUserDetailService
-import com.kmouit.capstone.service.MemberManageService
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.SignatureAlgorithm
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.Authentication
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -48,7 +45,6 @@ class JwtAuthenticationFilter(
                     .body
                 val username = claims["username"] as String
 
-                // ✅ 여기 핵심 수정
                 val userDetails = customUserDetailService.loadUserByUsername(username)
 
                 val authentication = UsernamePasswordAuthenticationToken(

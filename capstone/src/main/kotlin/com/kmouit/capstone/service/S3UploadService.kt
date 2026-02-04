@@ -105,7 +105,6 @@ class S3UploadService(
     }
 
 
-
     fun getPresignedUrl(filename: String, contentType: String): Map<String, String> {
         val uuid = UUID.randomUUID()
         val extension = filename.substringAfterLast('.', "jpg")
@@ -189,7 +188,7 @@ class S3UploadService(
         val uuid = UUID.randomUUID().toString()
         val extension = "jpg"
 
-        // ✅ 원본 저장 (JPG 변환된)
+        // 원본 저장
         val originalKey = "${s3BasePath}crawling-image/original-images/$uuid.$extension"
         val originalBaos = ByteArrayOutputStream()
         ImageIO.write(rgbImage, extension, originalBaos)
@@ -202,7 +201,7 @@ class S3UploadService(
             RequestBody.fromBytes(originalBaos.toByteArray())
         )
 
-        // ✅ 썸네일 생성
+        // 썸네일 생성
         val thumbnailImage = Thumbnails.of(rgbImage)
             .size(200, 200)
             .outputFormat(extension)

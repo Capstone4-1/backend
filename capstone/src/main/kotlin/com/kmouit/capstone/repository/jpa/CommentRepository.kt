@@ -36,7 +36,7 @@ interface CommentRepository : JpaRepository<Comments, Long> {
     SELECT c FROM Comments c 
     JOIN FETCH c.member
     WHERE c.post.id = :postId AND c.parent IS NULL
-"""
+    """
     )
     fun findTopLevelCommentsByPostId(@Param("postId") postId: Long): List<Comments>
     fun findByMember(member: Member, pageable: Pageable): Page<Comments>
